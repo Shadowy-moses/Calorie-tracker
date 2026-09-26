@@ -13,6 +13,12 @@ export function parseISODate(iso) {
   return new Date(y, m - 1, d);
 }
 
+export function shiftISODate(iso, delta) {
+  const date = parseISODate(iso);
+  date.setDate(date.getDate() + delta);
+  return todayKey(date);
+}
+
 export function prettyDate(iso) {
   const date = parseISODate(iso);
   return {

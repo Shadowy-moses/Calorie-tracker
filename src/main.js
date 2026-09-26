@@ -10,6 +10,7 @@ import { mountAdd, addHtml, missingBarcodeHtml } from './pages/add.js';
 import { dayHtml, historyHtml } from './pages/history.js';
 import { mountPortion, portionHtml } from './pages/portion.js';
 import { mountSettings, settingsHtml } from './pages/settings.js';
+import { mountPetInteractions, petHtml, petPreviewHtml } from './pages/pet.js';
 import { todayHtml } from './pages/today.js';
 import { session } from './session.js';
 import { confirmSheet, tabs, toast } from './ui.js';
@@ -32,6 +33,8 @@ const TITLES = {
   portion: 'Portion',
   day: 'Day',
   entry: 'Edit entry',
+  pet: 'Pet',
+  'pet-preview': 'Stages',
 };
 
 function goToDate(date) {
@@ -70,7 +73,13 @@ function parseRoute(hash) {
   const path = hash || '#/today';
   if (path === '#' || path === '#/' || path === '#/today') {
     session.logDate = null;
-    return { name: 'today', tab: 'today', html: todayHtml };
+    return { name: 'today', tab: 'today', html: todayHtml, mount: mountPetInteractions };
+  }
+  if (path === '#/pet/preview') {
+    return { name: 'pet-preview', tab: 'today', html: petPreviewHtml };
+  }
+  if (path === '#/pet') {
+    return { name: 'pet', tab: 'today', html: petHtml, mount: mountPetInteractions };
   }
   if (path === '#/add') {
     return { name: 'add', tab: 'add', html: addHtml, mount: (root) => mountAdd(root, addHandlers) };

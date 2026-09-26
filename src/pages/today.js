@@ -3,14 +3,16 @@ import { esc, fmtKcal, fmtNum, prettyDate, todayKey } from '../format.js';
 import { sortFrequent } from '../food.js';
 import { groupByMeal, MEALS, mealForNow, mealLabel } from '../meals.js';
 import { macrosForGrams, sumEntries } from '../nutrition.js';
+import { petTodaySection } from './pet.js';
 import { heroCard, icon } from '../ui.js';
 
 export async function todayHtml() {
   const today = todayKey();
-  const [profile, entries, foods] = await Promise.all([
+  const [profile, entries, foods, pet] = await Promise.all([
     ensureProfile(),
     entriesForDate(today),
     foodsForProfile(),
+    petTodaySection(),
   ]);
   const totals = sumEntries(entries);
   const groups = groupByMeal(entries);
@@ -18,7 +20,7 @@ export async function todayHtml() {
   const date = prettyDate(today);
 
   return `
-    <div class="screen">
+    <div class="screen"${pet.attrs}>
       <header class="top">
         <div>
           <p class="eyebrow">${esc(profile.name)}</p>
@@ -29,6 +31,7 @@ export async function todayHtml() {
           <strong>${date.day}</strong>
         </div>
       </header>
+      ${pet.html}
       ${heroCard(totals, profile)}
       ${frequent.length ? frequentStrip(frequent) : ''}
       ${

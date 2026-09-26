@@ -870,7 +870,311 @@ legend {
   outline-offset: 2px;
 }
 
+.pet-chip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 10px 12px 12px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.pet-chip.mood-hungry {
+  background: linear-gradient(180deg, #fff4ec 0%, var(--surface) 58%);
+}
+
+.pet-chip.mood-happy {
+  background: linear-gradient(180deg, #f3faf6 0%, var(--surface) 58%);
+}
+
+.pet-chip-copy { min-width: 0; display: grid; gap: 2px; }
+
+.pet-chip-name {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pet-chip .mini-track { margin-top: 6px; }
+
+.pet-name-card,
+.pet-panel,
+.pet-hero {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.pet-name-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 18px 16px 16px;
+  margin-bottom: 14px;
+}
+
+.pet-name-card p { color: var(--muted); }
+
+.pet-name-card .stack-form,
+.pet-rename { width: 100%; text-align: left; }
+
+.pet-title {
+  font-family: var(--display);
+  font-size: 1.85rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  color: var(--ink);
+  line-height: 1.05;
+}
+
+.pet-hero {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 16px 12px 14px;
+  margin-bottom: 14px;
+}
+
+.pet-hero.mood-hungry {
+  background: linear-gradient(180deg, #fff4ec 0%, var(--surface) 46%);
+}
+
+.pet-hero.mood-happy {
+  background: linear-gradient(180deg, #f3faf6 0%, var(--surface) 46%);
+}
+
+.pet-mood {
+  margin-top: 4px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pet-panel {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.pet-panel h2 { margin: 0; }
+
+.pet-panel p { color: var(--muted); }
+
+.pet-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pet-progress-head span {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.pet-progress-note { font-size: 14px; }
+
+.bar-fill.pet { background: var(--green); }
+
+.pet-streak {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.streak-pips { display: flex; gap: 6px; }
+
+.streak-pips span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #efeae1;
+}
+
+.streak-pips span.on { background: var(--green); }
+
+.pet-stats {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.pet-stats li { display: grid; gap: 2px; }
+
+.pet-stats span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pet-stats strong { font-variant-numeric: tabular-nums; }
+
+.pet-stats small { color: var(--muted); font-size: 14px; }
+
+.pet-rules {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.pet-rules li { padding-left: 2px; }
+
+.pet-rename { margin-bottom: 14px; }
+
+.pet-anchor {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  line-height: 0;
+}
+
+.pet-anchor::after {
+  content: "";
+  width: 68%;
+  height: 8px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(48, 36, 16, 0.16), transparent 70%);
+}
+
+.pet-bob { transform-origin: 50% 80%; animation: pet-bob 2.4s ease-in-out infinite; }
+
+.stage-egg .pet-bob { animation-name: pet-wobble; }
+
+.mood-hungry .pet-bob { animation-duration: 3.4s; }
+
+.mood-happy .pet-bob { animation-duration: 1.5s; }
+
+.pet-svg { display: block; }
+
+.pet-spark {
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: #e2b43a;
+  clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+  animation: pet-twinkle 1.8s ease-in-out infinite;
+}
+
+.pet-spark.two {
+  top: auto;
+  right: auto;
+  bottom: 16px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: #f0a090;
+  animation-delay: 0.45s;
+}
+
+.stage-line {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  margin-top: 12px;
+  padding: 16px 2px 10px;
+  border-radius: 22px;
+  background:
+    linear-gradient(to top, rgba(48, 36, 16, 0.05), transparent 42%),
+    var(--surface);
+  border: 1px solid var(--line);
+}
+
+.stage-figure {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stage-figure figcaption {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sheet.celebrate { text-align: center; position: relative; overflow: hidden; }
+
+.sheet.celebrate .pet-anchor { margin: 4px auto 2px; }
+
+.sheet.celebrate h2 { text-align: center; }
+
+.confetti { pointer-events: none; position: absolute; inset: 0; }
+
+.confetti i {
+  position: absolute;
+  left: calc(6% + (var(--i) * 9%));
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--green);
+  opacity: 0;
+  animation: confetti-fall 1s ease-out forwards;
+  animation-delay: calc(var(--i) * 35ms);
+}
+
+.confetti i:nth-child(3n) { background: var(--terra); border-radius: 50%; }
+
+.confetti i:nth-child(3n + 1) { background: #e2b43a; }
+
+@keyframes pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pet-wobble {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes pet-twinkle {
+  0%, 100% { transform: scale(0.7); opacity: 0.35; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(92px) rotate(50deg); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ring-value { animation: none; }
   .btn:active { transform: none; }
+  .pet-bob,
+  .pet-spark,
+  .confetti i { animation: none; }
+  .pet-spark { opacity: 0.8; }
 }

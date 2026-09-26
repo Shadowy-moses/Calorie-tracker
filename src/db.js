@@ -1,6 +1,9 @@
 /**
  * On-device store. Every food and meal row carries profileId so another
  * person can be added later without reshaping the data. v1 only writes David.
+ *
+ * v2 adds a pets store (name and the last stage we celebrated). Meal logs and
+ * saved foods stay in their existing stores and are not rewritten.
  */
 
 export const ACTIVE_PROFILE_ID = 'david';
@@ -13,7 +16,7 @@ export const DEFAULT_GOALS = {
 };
 
 const DB_NAME = 'calorie-tracker';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise;
 
@@ -36,8 +39,19 @@ function database() {
           entries.createIndex('byProfile', 'profileId');
           entries.createIndex('byProfileDate', ['profileId', 'date']);
         }
+        if (!db.objectStoreNames.contains('pets')) {
+          db.createObjectStore('pets', { keyPath: 'profileId' });
+        }
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = null;
+        };
+        resolve(db);
+      };
+      request.onblocked = () => reject(new Error('Close other tabs of the tracker, then open it again.'));
       request.onerror = () => reject(request.error || new Error('Could not open the log'));
     });
   }
@@ -67,6 +81,40 @@ export async function putProfile(profile) {
   objectStore.put(profile);
   await txDone(tx);
   return profile;
+}
+
+export async function getPet(profileId = ACTIVE_PROFILE_ID) {
+  const { objectStore } = await store('pets', 'readonly');
+  return requestResult(objectStore.get(profileId));
+}
+
+export async function putPet(pet) {
+  const { tx, objectStore } = await store('pets', 'readwrite');
+  objectStore.put(pet);
+  await txDone(tx);
+  return pet;
+}
+
+export async function ensurePet(profileId = ACTIVE_PROFILE_ID) {
+  const existing = await getPet(profileId);
+  if (existing) return existing;
+  return putPet({
+    profileId,
+    name: '',
+    celebratedStage: 'egg',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+}
+
+export async function savePet(patch, profileId = ACTIVE_PROFILE_ID) {
+  const pet = await ensurePet(profileId);
+  return putPet({
+    ...pet,
+    ...patch,
+    profileId: pet.profileId,
+    updatedAt: Date.now(),
+  });
 }
 
 export async function ensureProfile() {
