@@ -1,13 +1,15 @@
 import '@fontsource/fraunces/600.css';
 import { registerSW } from 'virtual:pwa-register';
-import { quickAddFood, resolveBarcode, saveManualPortion, undoQuickAdd } from './actions.js';
+import { quickAddFood, resolveBarcode, saveManualAsCustomFood, saveManualPortion, undoQuickAdd } from './actions.js';
 import { setRenderer } from './bus.js';
-import { deleteEntry, ensureProfile, getEntry, getFood } from './db.js';
+import { draftFromCustomEntry, draftFromCustomFood } from './custom-food.js';
+import { deleteEntry, ensureProfile, getCustomFood, getEntry, getFood } from './db.js';
 import { draftFromEntry, draftFromFood } from './food.js';
 import { dayTitle, esc, fmtNum, todayKey } from './format.js';
 import { mealForNow, mealLabel } from './meals.js';
 import { mountAdd, addHtml, missingBarcodeHtml } from './pages/add.js';
 import { dayHtml, historyHtml } from './pages/history.js';
+import { customLogHtml, mountCustomLog, mountMyFoodForm, myFoodFormHtml } from './pages/my-food.js';
 import { mountPortion, portionHtml } from './pages/portion.js';
 import { mountSettings, settingsHtml } from './pages/settings.js';
 import { todayHtml } from './pages/today.js';
@@ -32,6 +34,8 @@ const TITLES = {
   portion: 'Portion',
   day: 'Day',
   entry: 'Edit entry',
+  'my-food': 'My food',
+  'log-food': 'Log food',
 };
 
 function goToDate(date) {
@@ -92,6 +96,50 @@ function parseRoute(hash) {
       },
     };
   }
+  if (path === '#/my-food/new') {
+    return {
+      name: 'my-food',
+      tab: 'add',
+      html: () => myFoodFormHtml(null),
+      mount: (root) => mountMyFoodForm(root, null),
+    };
+  }
+  const editFood = path.match(/^#\/my-food\/([^/]+)$/);
+  if (editFood) {
+    const id = decodeURIComponent(editFood[1]);
+    return {
+      name: 'my-food',
+      tab: 'add',
+      html: async () => {
+        const food = await getCustomFood(id);
+        if (!food) return missingFoodHtml();
+        return myFoodFormHtml(food);
+      },
+      mount: async (root) => {
+        const food = await getCustomFood(id);
+        if (!food || !root.querySelector('#my-food-form')) return () => {};
+        return mountMyFoodForm(root, food);
+      },
+    };
+  }
+  const logFood = path.match(/^#\/log-food\/([^/]+)$/);
+  if (logFood) {
+    const id = decodeURIComponent(logFood[1]);
+    return {
+      name: 'log-food',
+      tab: 'add',
+      html: async () => {
+        const food = await getCustomFood(id);
+        if (!food) return missingFoodHtml();
+        return customLogHtml(draftFromCustomFood(food));
+      },
+      mount: async (root) => {
+        const food = await getCustomFood(id);
+        if (!food || !root.querySelector('#custom-log-form')) return () => {};
+        return mountCustomLog(root, draftFromCustomFood(food), (date) => goToDate(date));
+      },
+    };
+  }
   if (path === '#/history') {
     return { name: 'history', tab: 'history', html: historyHtml };
   }
@@ -130,15 +178,19 @@ function parseRoute(hash) {
       html: async () => {
         const record = await getEntry(id);
         if (!record) return `<div class="screen"><h1>Entry not found</h1><a class="btn" href="#/today">Back to today</a></div>`;
+        if (isCustomEntry(record)) return customLogHtml(draftFromCustomEntry(record));
         session.draft = draftFromEntry(record);
         return portionHtml(session.draft);
       },
       mount: async (root) => {
         const record = await getEntry(id);
         if (!record) return () => {};
+        tabbar.innerHTML = tabs(record.date === todayKey() ? 'today' : 'history');
+        if (isCustomEntry(record)) {
+          return mountCustomLog(root, draftFromCustomEntry(record), (date) => goToDate(date));
+        }
         const draft = draftFromEntry(record);
         session.draft = draft;
-        tabbar.innerHTML = tabs(record.date === todayKey() ? 'today' : 'history');
         return mountPortion(root, draft, (date) => {
           session.draft = null;
           goToDate(date);
@@ -193,7 +245,7 @@ const addHandlers = {
       return;
     }
     const offline = !navigator.onLine;
-    setStatus(offline ? 'You are offline, so this barcode can’t be looked up. Recent foods and manual entry still work.' : 'Open Food Facts didn’t respond. Try again, or enter the food yourself.');
+    setStatus(offline ? 'You are offline, so this barcode can’t be looked up. My foods, recent foods, and manual entry still work.' : 'Open Food Facts didn’t respond. Try again, or enter the food yourself.');
   },
   async onManual(form) {
     const error = form.querySelector('#manual-error');
@@ -224,22 +276,39 @@ const addHandlers = {
     }
     error.textContent = '';
     const meal = form.meal.value || mealForNow();
-    const entry = await saveManualPortion({
-      name,
-      grams,
-      kcal,
-      protein,
-      carbs,
-      fat,
-      meal,
-      barcode: session.manual?.barcode || null,
-      brand: session.manual?.brand || '',
-    });
-    session.manual = null;
-    toast(`Added ${name}`);
-    goToDate(entry.date);
+    const saveFood = Boolean(form.saveFood?.checked);
+    try {
+      if (saveFood) {
+        await saveManualAsCustomFood({ name, grams, kcal, protein, carbs, fat });
+      }
+      const entry = await saveManualPortion({
+        name,
+        grams,
+        kcal,
+        protein,
+        carbs,
+        fat,
+        meal,
+        barcode: session.manual?.barcode || null,
+        brand: session.manual?.brand || '',
+      });
+      session.manual = null;
+      toast(saveFood ? `Added ${name} and saved it to My foods` : `Added ${name}`);
+      goToDate(entry.date);
+    } catch (err) {
+      error.textContent = 'Could not save that. Try again.';
+      console.error(err);
+    }
   },
 };
+
+function missingFoodHtml() {
+  return `<div class="screen"><h1>Food not found</h1><p class="lede">It isn’t in My foods on this phone.</p><a class="btn" href="#/add">Back</a></div>`;
+}
+
+function isCustomEntry(entry) {
+  return Boolean(entry.logUnit && entry.servingUnit && entry.servingQty);
+}
 
 document.getElementById('app').addEventListener('change', (event) => {
   const input = event.target;

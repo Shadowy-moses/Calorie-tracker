@@ -1,6 +1,9 @@
 /**
  * On-device store. Every food and meal row carries profileId so another
  * person can be added later without reshaping the data. v1 only writes David.
+ *
+ * Version 2 adds customFoods ("My foods"). Upgrades only create stores that
+ * are missing, so meals and foods already on the phone stay put.
  */
 
 export const ACTIVE_PROFILE_ID = 'david';
@@ -13,29 +16,36 @@ export const DEFAULT_GOALS = {
 };
 
 const DB_NAME = 'calorie-tracker';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise;
+
+export function upgradeDatabase(db) {
+  if (!db.objectStoreNames.contains('profiles')) {
+    db.createObjectStore('profiles', { keyPath: 'id' });
+  }
+  if (!db.objectStoreNames.contains('foods')) {
+    const foods = db.createObjectStore('foods', { keyPath: 'id' });
+    foods.createIndex('byProfile', 'profileId');
+    foods.createIndex('byBarcode', ['profileId', 'barcode']);
+  }
+  if (!db.objectStoreNames.contains('entries')) {
+    const entries = db.createObjectStore('entries', { keyPath: 'id' });
+    entries.createIndex('byProfile', 'profileId');
+    entries.createIndex('byProfileDate', ['profileId', 'date']);
+  }
+  if (!db.objectStoreNames.contains('customFoods')) {
+    const customFoods = db.createObjectStore('customFoods', { keyPath: 'id' });
+    customFoods.createIndex('byProfile', 'profileId');
+  }
+}
 
 function database() {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
       request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains('profiles')) {
-          db.createObjectStore('profiles', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('foods')) {
-          const foods = db.createObjectStore('foods', { keyPath: 'id' });
-          foods.createIndex('byProfile', 'profileId');
-          foods.createIndex('byBarcode', ['profileId', 'barcode']);
-        }
-        if (!db.objectStoreNames.contains('entries')) {
-          const entries = db.createObjectStore('entries', { keyPath: 'id' });
-          entries.createIndex('byProfile', 'profileId');
-          entries.createIndex('byProfileDate', ['profileId', 'date']);
-        }
+        upgradeDatabase(request.result);
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error || new Error('Could not open the log'));
@@ -117,6 +127,37 @@ export async function findManualByName(name, profileId = ACTIVE_PROFILE_ID) {
   return foods.find((food) => food.source === 'manual' && food.name.trim().toLowerCase() === key) || null;
 }
 
+export async function getCustomFood(id) {
+  const { objectStore } = await store('customFoods', 'readonly');
+  return requestResult(objectStore.get(id));
+}
+
+export async function putCustomFood(food) {
+  const { tx, objectStore } = await store('customFoods', 'readwrite');
+  objectStore.put(food);
+  await txDone(tx);
+  return food;
+}
+
+export async function deleteCustomFood(id) {
+  const { tx, objectStore } = await store('customFoods', 'readwrite');
+  objectStore.delete(id);
+  await txDone(tx);
+}
+
+export async function customFoodsForProfile(profileId = ACTIVE_PROFILE_ID) {
+  const { objectStore } = await store('customFoods', 'readonly');
+  const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
+  return rows || [];
+}
+
+export async function findCustomByName(name, profileId = ACTIVE_PROFILE_ID) {
+  const key = name.trim().toLowerCase();
+  if (!key) return null;
+  const foods = await customFoodsForProfile(profileId);
+  return foods.find((food) => food.name.trim().toLowerCase() === key) || null;
+}
+
 export async function getEntry(id) {
   const { objectStore } = await store('entries', 'readonly');
   return requestResult(objectStore.get(id));
@@ -158,7 +199,7 @@ export async function adjustUseCount(foodId, delta) {
 export async function clearProfile(profileId = ACTIVE_PROFILE_ID) {
   const db = await database();
   await new Promise((resolve, reject) => {
-    const tx = db.transaction(['foods', 'entries'], 'readwrite');
+    const tx = db.transaction(['foods', 'entries', 'customFoods'], 'readwrite');
     const wipe = (storeName) => {
       const index = tx.objectStore(storeName).index('byProfile');
       index.openCursor(IDBKeyRange.only(profileId)).onsuccess = (event) => {
@@ -170,6 +211,7 @@ export async function clearProfile(profileId = ACTIVE_PROFILE_ID) {
     };
     wipe('foods');
     wipe('entries');
+    wipe('customFoods');
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('Could not erase the log'));

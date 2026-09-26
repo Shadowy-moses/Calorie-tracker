@@ -9,6 +9,7 @@ const ICONS = {
   trash: '<path d="M5 7h14"/><path d="M9 7V5.2A1.2 1.2 0 0 1 10.2 4h3.6A1.2 1.2 0 0 1 15 5.2V7"/><path d="M7.5 7l.8 12.1a1 1 0 0 0 1 .9h5.4a1 1 0 0 0 1-.9L16.5 7"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   tune: '<path d="M9 6l6 6-6 6"/>',
+  pencil: '<path d="M4 20h4l10.4-10.4a1.6 1.6 0 0 0 0-2.3l-1.7-1.7a1.6 1.6 0 0 0-2.3 0L4 16v4z"/><path d="M12.5 6.5l5 5"/>',
 };
 
 export function icon(name) {

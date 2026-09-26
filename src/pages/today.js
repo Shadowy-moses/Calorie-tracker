@@ -54,13 +54,18 @@ function mealBlock(meal, entries) {
     </section>`;
 }
 
+export function entryAmount(entry) {
+  if (entry.portionLabel) return entry.portionLabel;
+  return `${fmtNum(entry.grams)} g`;
+}
+
 export function entryRow(entry) {
   const brand = entry.brand ? `${esc(entry.brand)} · ` : '';
   return `
     <article class="entry">
       <a class="entry-main" href="#/entry/${esc(entry.id)}">
         <span class="entry-name">${esc(entry.name)}</span>
-        <span class="entry-meta">${brand}${esc(fmtNum(entry.grams))} g · P ${esc(fmtNum(entry.protein))} · C ${esc(fmtNum(entry.carbs))} · F ${esc(fmtNum(entry.fat))}</span>
+        <span class="entry-meta">${brand}${esc(entryAmount(entry))} · P ${esc(fmtNum(entry.protein))} · C ${esc(fmtNum(entry.carbs))} · F ${esc(fmtNum(entry.fat))}</span>
       </a>
       <span class="entry-kcal">${esc(fmtKcal(entry.kcal))}</span>
       <button type="button" class="icon-btn" data-action="delete-entry" data-id="${esc(entry.id)}" data-name="${esc(entry.name)}" aria-label="Delete ${esc(entry.name)}">${icon('trash')}</button>

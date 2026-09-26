@@ -1,4 +1,5 @@
-import { foodsForProfile } from '../db.js';
+import { matchCustomFoods } from '../custom-food.js';
+import { customFoodsForProfile, foodsForProfile } from '../db.js';
 import { dayTitle, esc, fmtKcal, fmtNum, todayKey } from '../format.js';
 import { sortFrequent } from '../food.js';
 import { mealLabel, MEALS, mealForNow } from '../meals.js';
@@ -7,9 +8,11 @@ import { searchFoods } from '../off.js';
 import { activeDate, session } from '../session.js';
 import { cameraErrorMessage, startScanner } from '../scanner.js';
 import { icon } from '../ui.js';
+import { customResultCards, myFoodsPanel } from './my-food.js';
 
 export async function addHtml() {
-  const foods = sortFrequent(await foodsForProfile()).slice(0, 12);
+  const [logged, saved] = await Promise.all([foodsForProfile(), customFoodsForProfile()]);
+  const foods = sortFrequent(logged).slice(0, 12);
   const tab = session.addTab || 'search';
   return `
     <div class="screen">
@@ -23,10 +26,12 @@ export async function addHtml() {
       <div class="tabs" role="tablist" aria-label="How to add food">
         ${tabButton('search', 'Search', tab)}
         ${tabButton('scan', 'Scan', tab)}
+        ${tabButton('mine', 'My foods', tab)}
         ${tabButton('manual', 'Manual', tab)}
       </div>
       ${tab === 'search' ? searchPanel(foods) : ''}
       ${tab === 'scan' ? scanPanel() : ''}
+      ${tab === 'mine' ? myFoodsPanel(saved) : ''}
       ${tab === 'manual' ? manualPanel() : ''}
     </div>`;
 }
@@ -55,7 +60,7 @@ function searchPanel(foods) {
 
 function recentBlock(foods) {
   if (!foods.length) {
-    return `<section class="empty compact"><h2>Recent foods</h2><p>Foods you add will wait here for one-tap logging.</p></section>`;
+    return `<section class="empty compact"><h2>Recent foods</h2><p>Foods you add will wait here for one-tap logging. To reuse your own numbers, save them under My foods.</p></section>`;
   }
   return `
     <section class="recent">
@@ -109,7 +114,7 @@ function manualPanel() {
   const meal = mealForNow();
   return `
     <form id="manual-form" class="stack-form">
-      ${manual.note ? `<p class="notice">${esc(manual.note)}</p>` : '<p class="lede">Enter the numbers for the amount you ate, not per 100 g.</p>'}
+      ${manual.note ? `<p class="notice">${esc(manual.note)}</p>` : '<p class="lede">Enter the numbers for the amount you ate. To use it again later, save it to My foods.</p>'}
       <label>
         <span>Name</span>
         <input name="name" required maxlength="80" value="${esc(manual.name || '')}" placeholder="Chicken and rice" />
@@ -130,16 +135,35 @@ function manualPanel() {
           ${MEALS.map((item) => `<label class="meal-chip"><input type="radio" name="meal" value="${item.id}" ${item.id === meal ? 'checked' : ''} /><span>${item.label}</span></label>`).join('')}
         </div>
       </fieldset>
+      <label class="save-toggle">
+        <input type="checkbox" name="saveFood" />
+        <span>Save to My foods so I can use it again</span>
+      </label>
       <p id="manual-error" class="form-error" role="alert"></p>
       <button class="btn" type="submit">Add to log</button>
     </form>`;
 }
 
-export function resultCards(foods) {
-  if (!foods.length) {
-    const query = session.searchQuery.trim();
-    return `<section class="empty compact"><h2>No foods found</h2><p>Nothing in Open Food Facts matched “${esc(query)}”.</p><button type="button" class="btn" data-action="go-manual">Enter it manually</button></section>`;
+export function searchResultsHtml(customFoods, offFoods, { searching = false, error = null } = {}) {
+  const mine = customResultCards(customFoods);
+  const query = session.searchQuery.trim();
+  if (searching) {
+    return `${mine}<p class="muted pad">Searching…</p>`;
   }
+  if (error) {
+    const offline = !navigator.onLine;
+    return `${mine}<section class="empty compact"><h2>${offline ? 'You are offline' : 'Search didn’t go through'}</h2><p>${offline ? 'My foods, recent foods, and manual entry still work.' : 'Open Food Facts didn’t respond. Try again, or enter the food yourself.'}</p><button type="button" class="btn" data-action="go-manual">Enter it manually</button></section>`;
+  }
+  if (!offFoods.length && !customFoods.length) {
+    return `<section class="empty compact"><h2>No foods found</h2><p>Nothing in My foods or Open Food Facts matched “${esc(query)}”.</p><button type="button" class="btn" data-action="go-manual">Enter it manually</button></section>`;
+  }
+  if (!offFoods.length) {
+    return `${mine}<p class="muted pad">Nothing else in Open Food Facts matched “${esc(query)}”.</p>`;
+  }
+  return `${mine}${resultCards(offFoods)}`;
+}
+
+export function resultCards(foods) {
   return `
     <div class="entry-list results">
       ${foods
@@ -174,6 +198,7 @@ export function mountAdd(root, handlers) {
       window.clearTimeout(timer);
       if (query.length < 2) {
         session.results = [];
+        session.customMatches = [];
         const foods = sortFrequent(await foodsForProfile()).slice(0, 12);
         if (my !== seq) return;
         results.innerHTML = recentBlock(foods);
@@ -182,16 +207,20 @@ export function mountAdd(root, handlers) {
       session.results = [];
       timer = window.setTimeout(async () => {
         if (my !== seq) return;
-        results.innerHTML = '<p class="muted pad">Searching…</p>';
+        const saved = await customFoodsForProfile();
+        if (my !== seq) return;
+        const matched = matchCustomFoods(saved, query);
+        session.customMatches = matched;
+        results.innerHTML = searchResultsHtml(matched, [], { searching: true });
         try {
           const foods = await searchFoods(query);
           if (my !== seq) return;
           session.results = foods;
-          results.innerHTML = resultCards(foods);
+          results.innerHTML = searchResultsHtml(matched, foods);
         } catch (error) {
           if (my !== seq) return;
-          const offline = !navigator.onLine;
-          results.innerHTML = `<section class="empty compact"><h2>${offline ? 'You are offline' : 'Search didn’t go through'}</h2><p>${offline ? 'Recent foods and manual entry still work.' : 'Open Food Facts didn’t respond. Try again, or enter the food yourself.'}</p><button type="button" class="btn" data-action="go-manual">Enter it manually</button></section>`;
+          session.results = [];
+          results.innerHTML = searchResultsHtml(matched, [], { error });
           console.error(error);
         }
       }, 320);
@@ -201,6 +230,11 @@ export function mountAdd(root, handlers) {
     if (session.searchQuery.trim().length >= 2) void run();
     searchForm.addEventListener('submit', (event) => {
       event.preventDefault();
+      const saved = session.customMatches?.[0];
+      if (saved) {
+        location.hash = `#/log-food/${saved.id}`;
+        return;
+      }
       if (session.results?.[0]) handlers.pickResult(0);
     });
   }
