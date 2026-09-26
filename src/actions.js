@@ -1,18 +1,22 @@
 import { requestRender } from './bus.js';
+import { buildCustomEntry, normalizeUnit } from './custom-food.js';
 import {
   ACTIVE_PROFILE_ID,
   adjustUseCount,
   deleteEntry,
+  findCustomByName,
   findFoodByBarcode,
   findManualByName,
+  getCustomFood,
   getEntry,
   getFood,
+  putCustomFood,
   putEntry,
   putFood,
 } from './db.js';
 import { draftFromFood } from './food.js';
 import { mealForNow } from './meals.js';
-import { macrosForGrams, per100FromPortion } from './nutrition.js';
+import { macrosForGrams, per100FromPortion, round1 } from './nutrition.js';
 import { lookupBarcode } from './off.js';
 import { activeDate, session } from './session.js';
 import { extractBarcode, todayKey } from './format.js';
@@ -101,6 +105,74 @@ export async function logFood({ food, grams, meal, date, countUse = true, totals
     updatedAt: now,
   };
   await putEntry(entry);
+  return entry;
+}
+
+export async function saveCustomFood(input) {
+  const now = Date.now();
+  const existing = input.id ? await getCustomFood(input.id) : null;
+  const record = {
+    id: existing?.id || crypto.randomUUID(),
+    profileId: ACTIVE_PROFILE_ID,
+    name: input.name.trim(),
+    servingQty: round1(input.servingQty),
+    servingUnit: normalizeUnit(input.servingUnit),
+    kcal: Math.round(Number(input.kcal) || 0),
+    protein: round1(input.protein),
+    carbs: round1(input.carbs),
+    fat: round1(input.fat),
+    useCount: existing?.useCount || 0,
+    lastUsedAt: existing?.lastUsedAt || null,
+    lastAmount: existing?.lastAmount ?? null,
+    lastUnit: existing?.lastUnit || null,
+    lastMeal: existing?.lastMeal || null,
+    createdAt: existing?.createdAt || now,
+    updatedAt: now,
+  };
+  await putCustomFood(record);
+  return record;
+}
+
+export async function saveManualAsCustomFood({ name, grams, kcal, protein, carbs, fat }) {
+  const existing = await findCustomByName(name);
+  return saveCustomFood({
+    id: existing?.id,
+    name,
+    servingQty: grams,
+    servingUnit: 'g',
+    kcal,
+    protein,
+    carbs,
+    fat,
+  });
+}
+
+export async function logCustomFood({ food, amount, unit, meal, date, entryId }) {
+  const existing = entryId ? await getEntry(entryId) : null;
+  const entry = buildCustomEntry({
+    food,
+    amount,
+    unit,
+    meal,
+    date,
+    entryId,
+    existing,
+    profileId: ACTIVE_PROFILE_ID,
+  });
+  if (!entry) throw new Error('Enter an amount.');
+  await putEntry(entry);
+  if (!entryId && food.id) {
+    const saved = await getCustomFood(food.id);
+    if (saved) {
+      saved.useCount = (saved.useCount || 0) + 1;
+      saved.lastUsedAt = Date.now();
+      saved.lastAmount = Number(amount);
+      saved.lastUnit = unit;
+      saved.lastMeal = meal;
+      saved.updatedAt = Date.now();
+      await putCustomFood(saved);
+    }
+  }
   return entry;
 }
 

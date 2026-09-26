@@ -6,6 +6,7 @@ export const session = {
   addTab: 'search',
   searchQuery: '',
   results: [],
+  customMatches: [],
   scanMessage: null,
 };
 

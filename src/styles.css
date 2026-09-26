@@ -430,7 +430,6 @@ h2 {
 .tabs,
 .seg {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   gap: 4px;
   padding: 4px;
   border-radius: 16px;
@@ -438,16 +437,24 @@ h2 {
   margin-bottom: 14px;
 }
 
+.tabs { grid-template-columns: repeat(4, 1fr); }
+
 .seg { grid-template-columns: 1fr 1fr; margin-bottom: 0; }
 
 .tab-btn,
 .seg-btn {
   border: 0;
   background: transparent;
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 12px;
   font-weight: 700;
   color: var(--muted);
+}
+
+.tab-btn {
+  font-size: 13px;
+  padding: 0 2px;
+  line-height: 1.15;
 }
 
 .tab-btn.on,
@@ -510,15 +517,18 @@ legend {
   gap: 8px;
 }
 
-.meal-chip { position: relative; }
+.meal-chip,
+.unit-chip { position: relative; }
 
-.meal-chip input {
+.meal-chip input,
+.unit-chip input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.meal-chip span {
+.meal-chip span,
+.unit-chip span {
   display: flex;
   min-height: 44px;
   align-items: center;
@@ -531,15 +541,76 @@ legend {
   font-size: 14px;
 }
 
-.meal-chip input:checked + span {
+.meal-chip input:checked + span,
+.unit-chip input:checked + span {
   background: var(--green);
   border-color: var(--green);
   color: white;
 }
 
-.meal-chip input:focus-visible + span {
+.meal-chip input:focus-visible + span,
+.unit-chip input:focus-visible + span {
   outline: 2px solid var(--green);
   outline-offset: 2px;
+}
+
+.unit-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unit-chip span {
+  min-width: 64px;
+  padding: 0 14px;
+}
+
+.unit-picker { border: 0; padding: 0; margin: 0; }
+
+.save-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.save-toggle input {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  margin: 0;
+  accent-color: var(--green);
+  flex: none;
+}
+
+.save-toggle span {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mine { display: grid; gap: 12px; }
+
+.badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+.mine-thumb {
+  background: linear-gradient(135deg, #e7f4ec, #d7eadf);
 }
 
 .lede,

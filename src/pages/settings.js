@@ -37,7 +37,7 @@ export async function settingsHtml() {
       </form>
       <section class="about">
         <h2>On this phone</h2>
-        <p>Meals, foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
+        <p>Meals, My foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
         <button class="btn danger" type="button" id="clear-data">Erase everything on this phone</button>
       </section>
     </div>`;
@@ -73,7 +73,7 @@ export function mountSettings(root) {
   const onClear = async () => {
     const ok = await confirmSheet({
       title: 'Erase this phone’s log?',
-      text: 'Meals and saved foods for David will be deleted. Targets go back to the starting numbers. This cannot be undone.',
+      text: 'Meals and My foods for David will be deleted. Targets go back to the starting numbers. This cannot be undone.',
       confirmLabel: 'Erase',
       danger: true,
     });
