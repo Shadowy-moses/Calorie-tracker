@@ -2,9 +2,13 @@
  * On-device store. Every food and meal row carries profileId so another
  * person can be added later without reshaping the data. v1 only writes David.
  *
- * v2 adds a pets store (name and the last stage we celebrated). Meal logs and
- * saved foods stay in their existing stores and are not rewritten.
+ * v2 adds a pets store. Meal logs and saved foods stay in their existing
+ * stores and are not rewritten. A later roster lives in that same pet record:
+ * older rows (a name and a celebrated stage) are rewritten on read into the
+ * first creature choice. The database version stays at 2.
  */
+
+import { normalizePet, petRecord, withOffers } from './pet/roster.js';
 
 export const ACTIVE_PROFILE_ID = 'david';
 
@@ -97,24 +101,25 @@ export async function putPet(pet) {
 
 export async function ensurePet(profileId = ACTIVE_PROFILE_ID) {
   const existing = await getPet(profileId);
-  if (existing) return existing;
-  return putPet({
-    profileId,
-    name: '',
-    celebratedStage: 'egg',
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  });
+  if (existing?.rosterVersion === 1 && !('name' in existing) && !('celebratedStage' in existing)) {
+    return existing;
+  }
+  const normalized = normalizePet(existing, profileId);
+  const { pet } = withOffers(normalized, { stageId: 'egg' });
+  return putPet(petRecord({ ...pet, updatedAt: Date.now() }));
 }
 
 export async function savePet(patch, profileId = ACTIVE_PROFILE_ID) {
-  const pet = await ensurePet(profileId);
-  return putPet({
-    ...pet,
-    ...patch,
-    profileId: pet.profileId,
-    updatedAt: Date.now(),
-  });
+  const pet = normalizePet(await ensurePet(profileId), profileId);
+  return putPet(
+    petRecord({
+      ...pet,
+      ...patch,
+      profileId: pet.profileId,
+      rosterVersion: 1,
+      updatedAt: Date.now(),
+    }),
+  );
 }
 
 export async function ensureProfile() {

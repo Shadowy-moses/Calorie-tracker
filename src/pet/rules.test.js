@@ -230,6 +230,27 @@ test('solid days reach adult in roughly 4 to 8 weeks', () => {
   assert.ok(three < partial);
 });
 
+test('the creature you are raising only counts meals from when it was chosen', () => {
+  const chosenAt = Date.parse('2026-05-02T15:00:00Z');
+  const entries = [
+    entry('2026-05-01', 'breakfast', 500, 20),
+    entry('2026-05-02', 'breakfast', 500, 20),
+    entry('2026-05-02', 'lunch', 500, 20),
+    entry('2026-05-03', 'dinner', 500, 20),
+  ];
+  entries[0].createdAt = chosenAt - 86400000;
+  entries[1].createdAt = chosenAt - 5000;
+  entries[2].createdAt = chosenAt + 5000;
+  entries[3].createdAt = chosenAt + 86400000;
+  const wholeLog = evaluatePet(entries, GOALS, '2026-05-03');
+  const firstCreature = evaluatePet(entries, GOALS, '2026-05-03', { since: 0 });
+  const nextCreature = evaluatePet(entries, GOALS, '2026-05-03', { since: chosenAt });
+  assert.equal(firstCreature.totalPoints, wholeLog.totalPoints);
+  assert.ok(wholeLog.totalPoints > nextCreature.totalPoints);
+  assert.equal(nextCreature.totalPoints, 20);
+  assert.equal(nextCreature.today.slots, 1);
+});
+
 test('pet names are short and required', () => {
   assert.equal(cleanPetName('  Mochi  ').name, 'Mochi');
   assert.equal(cleanPetName('   ').error, 'Give your pet a name.');

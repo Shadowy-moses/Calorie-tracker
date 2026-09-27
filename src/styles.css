@@ -1178,3 +1178,150 @@ legend {
   .confetti i { animation: none; }
   .pet-spark { opacity: 0.8; }
 }
+
+.choose-embed,
+.choice-list { display: grid; gap: 10px; }
+
+.choice-lede,
+.choice-note { color: var(--muted); margin-bottom: 10px; }
+
+.choice-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 8px 10px 8px 4px;
+  box-shadow: var(--shadow);
+}
+
+.choice-art {
+  display: flex;
+  align-items: flex-end;
+  min-width: 132px;
+}
+
+.choice-art .pet-anchor::after { width: 54%; height: 6px; }
+
+.choice-copy { display: grid; gap: 2px; min-width: 0; }
+
+.choice-name {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.choice-flavor { color: var(--muted); font-size: 14px; }
+
+.pill {
+  justify-self: start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.pill-cute { background: #fde7ef; color: #9d3d62; }
+
+.pill-cool { background: #e7eef8; color: #245a86; }
+
+.next-banner {
+  display: block;
+  text-decoration: none;
+  background: var(--green-soft);
+  color: var(--green-dark);
+  border-radius: 18px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.collection-jump { margin: 0 0 14px; }
+
+.collection-jump a { font-weight: 700; }
+
+.pet-flavor {
+  color: var(--muted);
+  text-align: center;
+  font-size: 15px;
+}
+
+.pet-panel .btn { margin-top: 4px; }
+
+.collection-list { display: grid; gap: 10px; }
+
+.collection-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 8px 12px 8px 4px;
+  box-shadow: var(--shadow);
+}
+
+.collection-card h2 {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.collection-card p { color: var(--muted); font-size: 14px; }
+
+.roster-screen {
+  padding: 8px 6px 10px;
+}
+
+.roster-screen .top { margin-bottom: 4px; }
+
+.roster-screen h1 { font-size: 1.35rem; }
+
+.roster-board { display: grid; gap: 0; }
+
+.roster-row {
+  display: grid;
+  grid-template-columns: 52px repeat(5, minmax(0, 1fr));
+  align-items: end;
+  justify-items: center;
+}
+
+.roster-head {
+  align-items: end;
+  padding-bottom: 2px;
+}
+
+.roster-head span,
+.roster-name {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.roster-name {
+  justify-self: start;
+  padding-left: 2px;
+  line-height: 1.1;
+}
+
+.roster-board .pet-bob { animation: none; }
+
+.roster-board .pet-anchor::after {
+  width: 70%;
+  height: 4px;
+  margin-top: -4px;
+}

@@ -1,7 +1,9 @@
 /**
  * Food points are derived from the meal log every time they are shown.
  * Nothing here is a running total: editing or deleting an entry changes
- * the score, and days already in the log count the first time you open the pet.
+ * the score for the creature you are raising.
+ * The first creature counts the whole log. Each later creature counts
+ * entries logged from the moment it was chosen.
  *
  * A finished day can earn:
  * - 10 food for each meal slot with at least one entry (breakfast, lunch,
@@ -200,9 +202,10 @@ export function scoreToday(entries, goals, streakIfLogged) {
   };
 }
 
-function groupByDate(entries, today) {
+function groupByDate(entries, today, since = 0) {
   const byDate = new Map();
   for (const entry of entries || []) {
+    if (!countsForCreature(entry, since)) continue;
     const date = entry?.date;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) continue;
     if (date > today) continue;
@@ -222,8 +225,16 @@ export function moodForToday(entries, goals) {
   return 'content';
 }
 
-export function evaluatePet(entries, goals, today) {
-  const byDate = groupByDate(entries, today);
+export function countsForCreature(entry, since = 0) {
+  const start = Number(since) || 0;
+  if (start <= 0) return true;
+  if (Number.isFinite(Number(entry?.createdAt))) return Number(entry.createdAt) >= start;
+  return false;
+}
+
+export function evaluatePet(entries, goals, today, options = {}) {
+  const since = Number(options.since) || 0;
+  const byDate = groupByDate(entries, today, since);
   const logged = new Set(byDate.keys());
   let totalPoints = 0;
 
@@ -275,8 +286,8 @@ export function rulesCopy() {
     ],
     notes: [
       'Meal points count right away, including today. The calorie, protein, and streak bonuses wait until the day is over, so today shows them as pending.',
-      'A rough day still feeds your pet if you log it. Skipping the log is the only way that day adds nothing. Your pet never dies and never drops a stage as a punishment.',
-      'Points come from the meals saved on this phone. Change or delete an entry and the total is worked out again. Past days count.',
+      'A rough day still feeds your pet if you log it. Skipping the log is the only way that day adds nothing. Your pet never dies, and a finished adult stays in your collection.',
+      'The first creature counts every meal already saved on this phone. Each one after that counts meals from the moment you choose it. Change or delete an entry and that creature’s food is worked out again.',
     ],
     stages: PET_STAGES.map((stage) => ({ ...stage })),
   };

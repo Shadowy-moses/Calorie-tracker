@@ -10,7 +10,7 @@ import { mountAdd, addHtml, missingBarcodeHtml } from './pages/add.js';
 import { dayHtml, historyHtml } from './pages/history.js';
 import { mountPortion, portionHtml } from './pages/portion.js';
 import { mountSettings, settingsHtml } from './pages/settings.js';
-import { mountPetInteractions, petHtml, petPreviewHtml } from './pages/pet.js';
+import { mountPetInteractions, petChooseHtml, petCollectionHtml, petHtml, petRosterHtml } from './pages/pet.js';
 import { todayHtml } from './pages/today.js';
 import { session } from './session.js';
 import { confirmSheet, tabs, toast } from './ui.js';
@@ -34,7 +34,9 @@ const TITLES = {
   day: 'Day',
   entry: 'Edit entry',
   pet: 'Pet',
-  'pet-preview': 'Stages',
+  'pet-choose': 'Choose',
+  'pet-collection': 'Collection',
+  'pet-roster': 'Roster',
 };
 
 function goToDate(date) {
@@ -53,7 +55,7 @@ async function render() {
   const route = parseRoute(location.hash);
   document.title = `${TITLES[route.name] || 'Calories'} · Calorie Tracker`;
   tabbar.innerHTML = tabs(route.tab);
-  tabbar.hidden = false;
+  tabbar.hidden = Boolean(route.hideTabs);
   const html = await route.html();
   if (token !== renderToken) return;
   view.innerHTML = html;
@@ -75,8 +77,14 @@ function parseRoute(hash) {
     session.logDate = null;
     return { name: 'today', tab: 'today', html: todayHtml, mount: mountPetInteractions };
   }
-  if (path === '#/pet/preview') {
-    return { name: 'pet-preview', tab: 'today', html: petPreviewHtml };
+  if (path === '#/pet/preview' || path === '#/pet/roster') {
+    return { name: 'pet-roster', tab: 'today', html: petRosterHtml, hideTabs: true };
+  }
+  if (path === '#/pet/choose') {
+    return { name: 'pet-choose', tab: 'today', html: petChooseHtml, mount: mountPetInteractions };
+  }
+  if (path === '#/pet/collection') {
+    return { name: 'pet-collection', tab: 'today', html: petCollectionHtml };
   }
   if (path === '#/pet') {
     return { name: 'pet', tab: 'today', html: petHtml, mount: mountPetInteractions };
