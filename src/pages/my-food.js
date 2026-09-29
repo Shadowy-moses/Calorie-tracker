@@ -15,7 +15,7 @@ import { deleteCustomFood, deleteEntry } from '../db.js';
 import { dayTitle, esc, fmtKcal, fmtNum, parseNum, todayKey } from '../format.js';
 import { MEALS, mealForNow, mealLabel } from '../meals.js';
 import { activeDate, session } from '../session.js';
-import { confirmSheet, icon, toast } from '../ui.js';
+import { confirmSheet, icon, relicScreen, toast } from '../ui.js';
 
 const OZ_CHIPS = [1, 2, 3, 4, 6, 8];
 const GRAM_CHIPS = [25, 50, 100, 150, 200];
@@ -57,7 +57,7 @@ export function customResultCards(foods) {
             <span class="thumb mine-thumb" aria-hidden="true"></span>
             <span class="result-copy">
               <span class="entry-name">${esc(food.name)}</span>
-              <span class="entry-meta"><span class="badge">My food</span> ${esc(perServingLabel(food))}</span>
+              <span class="entry-meta"><span class="tag">My food</span> ${esc(perServingLabel(food))}</span>
             </span>
           </a>`,
         )
@@ -70,15 +70,14 @@ export function myFoodFormHtml(food) {
   const unit = food?.servingUnit || 'oz';
   const preset = !food || isPresetUnit(unit);
   const chosen = preset ? unit : 'other';
-  return `
-    <div class="screen">
-      <header class="top">
-        <a class="back" href="#/add" data-keep-date aria-label="Back">${icon('back')}</a>
-        <div>
-          <p class="eyebrow">My foods</p>
-          <h1>${editing ? 'Edit food' : 'New food'}</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'fen',
+    kicker: 'My foods',
+    title: editing ? 'Edit food' : 'New food',
+    backHref: '#/add',
+    backLabel: 'Back',
+    keepDate: true,
+    body: `
       <form id="my-food-form" class="stack-form">
         <p class="lede">${editing ? 'Changing these numbers won’t change meals you already logged.' : 'Enter the calories and macros for one serving. You can use a different amount when you log it.'}</p>
         <label>
@@ -113,7 +112,8 @@ export function myFoodFormHtml(food) {
         <button class="btn" type="submit">${editing ? 'Save changes' : 'Save food'}</button>
         ${editing ? '<button class="btn danger" type="button" id="delete-food">Delete food</button>' : ''}
       </form>
-    </div>`;
+    `,
+  });
 }
 
 export function mountMyFoodForm(root, food) {
@@ -208,17 +208,15 @@ export function customLogHtml(draft) {
       ? '#/today'
       : `#/day/${draft.date}`
     : '#/add';
-  const keepDate = back === '#/add' ? ' data-keep-date' : '';
   const weight = isWeightUnit(food.servingUnit);
-  return `
-    <div class="screen">
-      <header class="top">
-        <a class="back" href="${back}"${keepDate} aria-label="Back">${icon('back')}</a>
-        <div>
-          <p class="eyebrow">My foods</p>
-          <h1>${esc(food.name)}</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'cliff',
+    kicker: 'My foods',
+    title: food.name,
+    backHref: back,
+    backLabel: 'Back',
+    keepDate: back === '#/add',
+    body: `
       ${draft.entryId ? '' : logDateNote()}
       <p class="per100">${esc(servingSentence(food))}</p>
       <form id="custom-log-form" class="stack-form">
@@ -246,7 +244,8 @@ export function customLogHtml(draft) {
         <button class="btn" type="submit" id="custom-save">${draft.entryId ? 'Save changes' : 'Add'}</button>
         ${draft.entryId ? '<button class="btn danger" type="button" id="custom-delete">Delete entry</button>' : ''}
       </form>
-    </div>`;
+    `,
+  });
 }
 
 function logDateNote() {

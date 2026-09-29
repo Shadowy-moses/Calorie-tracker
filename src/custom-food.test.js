@@ -143,7 +143,7 @@ test('upgrading the database adds My foods and leaves existing logs in place', (
     },
   };
   upgradeDatabase(db);
-  assert.deepEqual(created, ['customFoods']);
+  assert.deepEqual(created, ['customFoods', 'workouts']);
   assert.equal(existing.has('profiles'), true);
   assert.equal(existing.has('foods'), true);
   assert.equal(existing.has('entries'), true);
@@ -163,5 +163,5 @@ test('a brand new database creates every store once', () => {
   };
   upgradeDatabase(db);
   upgradeDatabase(db);
-  assert.deepEqual(created, ['profiles', 'foods', 'entries', 'customFoods']);
+  assert.deepEqual(created, ['profiles', 'foods', 'entries', 'customFoods', 'workouts']);
 });
