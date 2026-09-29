@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateBadges, inCalorieWindow } from './badges.js';
+import { evaluateBadges } from './badges.js';
 
-const goals = { calorieGoal: 2000, proteinGoal: 120, carbGoal: 225, fatGoal: 65 };
+function meal(date) {
+  return { date, kcal: 400, protein: 20, carbs: 10, fat: 5, name: 'Meal' };
+}
 
-function meal(date, kcal, protein = 20) {
-  return { date, kcal, protein, carbs: 10, fat: 5, name: 'Meal' };
+function days(start, count, step = 1) {
+  const [y, m, d] = start.split('-').map(Number);
+  const entries = [];
+  for (let i = 0; i < count; i += 1) {
+    const date = new Date(Date.UTC(y, m - 1, d + i * step));
+    const iso = date.toISOString().slice(0, 10);
+    entries.push(meal(iso));
+  }
+  return entries;
 }
 
 function byId(result) {
@@ -13,102 +22,80 @@ function byId(result) {
 }
 
 test('an empty log leaves every badge locked', () => {
-  const result = evaluateBadges([], goals);
+  const result = evaluateBadges([]);
   assert.equal(result.loggedDays, 0);
   assert.equal(result.longestStreak, 0);
+  assert.deepEqual(
+    result.badges.map((badge) => badge.id),
+    ['kindling', 'watch', 'lake', 'ridge'],
+  );
   assert.ok(result.badges.every((badge) => badge.earned === false));
 });
 
-test('the first logged meal earns First Ember only', () => {
-  const badges = byId(evaluateBadges([meal('2026-09-02', 400, 30)], goals));
-  assert.equal(badges['first-meal'].earned, true);
-  assert.equal(badges['first-meal'].earnedOn, '2026-09-02');
-  assert.equal(badges['streak-3'].earned, false);
-  assert.equal(badges['streak-7'].earned, false);
-  assert.equal(badges['streak-14'].earned, false);
+test('one logged day earns Kindling only', () => {
+  const badges = byId(evaluateBadges([meal('2026-09-02'), meal('2026-09-02')]));
+  assert.equal(badges.kindling.earned, true);
+  assert.equal(badges.kindling.earnedOn, '2026-09-02');
+  assert.equal(badges.watch.earned, false);
+  assert.equal(badges.lake.earned, false);
+  assert.equal(badges.ridge.earned, false);
+  assert.equal(badges.watch.progress, '1 of 7 days in a row');
 });
 
-test('three calendar days in a row earn Three Dawns, and a gap does not', () => {
-  const consecutive = byId(
-    evaluateBadges(
-      [meal('2026-09-01', 400), meal('2026-09-02', 400), meal('2026-09-03', 500, 40)],
-      goals,
-    ),
-  );
-  assert.equal(consecutive['streak-3'].earned, true);
-  assert.equal(consecutive['streak-3'].earnedOn, '2026-09-03');
-  assert.equal(consecutive['streak-7'].earned, false);
+test('seven days in a row earn The Watch, and a gap does not', () => {
+  const run = byId(evaluateBadges(days('2026-08-01', 7)));
+  assert.equal(run.kindling.earned, true);
+  assert.equal(run.watch.earned, true);
+  assert.equal(run.watch.earnedOn, '2026-08-07');
+  assert.equal(run.lake.earned, false);
+  assert.equal(run.ridge.earned, false);
 
-  const gapped = byId(
-    evaluateBadges(
-      [meal('2026-09-01', 400), meal('2026-09-02', 400), meal('2026-09-04', 400)],
-      goals,
-    ),
-  );
-  assert.equal(gapped['streak-3'].earned, false);
-  assert.equal(gapped['streak-3'].longest, 2);
+  const gapped = evaluateBadges([...days('2026-08-01', 6), meal('2026-08-08')]);
+  assert.equal(gapped.longestStreak, 6);
+  assert.equal(byId(gapped).watch.earned, false);
 });
 
-test('past days count even when today is empty', () => {
-  const dates = [];
-  for (let day = 1; day <= 7; day += 1) {
-    dates.push(meal(`2026-08-${String(day).padStart(2, '0')}`, 1500, 40));
-  }
-  const badges = byId(evaluateBadges(dates, goals));
-  assert.equal(badges['streak-7'].earned, true);
-  assert.equal(badges['streak-7'].earnedOn, '2026-08-07');
-  assert.equal(badges['streak-14'].earned, false);
-  assert.equal(badges['first-meal'].earnedOn, '2026-08-01');
+test('past days count when today is empty', () => {
+  const badges = byId(evaluateBadges(days('2026-07-01', 7)));
+  assert.equal(badges.watch.earned, true);
+  assert.equal(badges.kindling.earnedOn, '2026-07-01');
 });
 
-test('fourteen days in a row earn the long streak', () => {
-  const entries = [];
-  for (let day = 1; day <= 14; day += 1) {
-    entries.push(meal(`2026-09-${String(day).padStart(2, '0')}`, 400, 10));
-  }
-  const result = evaluateBadges(entries, goals);
-  assert.equal(result.longestStreak, 14);
+test('fourteen days in a row earn The Lake before 21 logged days', () => {
+  const result = evaluateBadges(days('2026-09-01', 14));
   const badges = byId(result);
-  assert.equal(badges['streak-3'].earned, true);
-  assert.equal(badges['streak-7'].earned, true);
-  assert.equal(badges['streak-14'].earned, true);
-  assert.equal(badges['streak-14'].earnedOn, '2026-09-14');
+  assert.equal(result.loggedDays, 14);
+  assert.equal(result.longestStreak, 14);
+  assert.equal(badges.lake.earned, true);
+  assert.equal(badges.lake.earnedOn, '2026-09-14');
+  assert.equal(badges.ridge.earned, false);
+  assert.equal(badges.watch.earned, true);
 });
 
-test('several meals on one day still count as a single streak day', () => {
-  const result = evaluateBadges(
-    [meal('2026-09-01', 200), meal('2026-09-01', 300), meal('2026-09-02', 400)],
-    goals,
-  );
-  assert.equal(result.loggedDays, 2);
-  assert.equal(result.longestStreak, 2);
+test('21 separate days earn The Lake without a long streak', () => {
+  const result = evaluateBadges(days('2026-01-01', 21, 2));
+  const badges = byId(result);
+  assert.equal(result.loggedDays, 21);
+  assert.equal(result.longestStreak, 1);
+  assert.equal(badges.watch.earned, false);
+  assert.equal(badges.lake.earned, true);
+  assert.equal(badges.lake.earnedOn, '2026-02-10');
+  assert.equal(badges.ridge.earned, false);
 });
 
-test('calorie window is 70% through 105% of the current target', () => {
-  assert.equal(inCalorieWindow(1400, 2000), true);
-  assert.equal(inCalorieWindow(1399, 2000), false);
-  assert.equal(inCalorieWindow(2100, 2000), true);
-  assert.equal(inCalorieWindow(2101, 2000), false);
-  assert.equal(inCalorieWindow(1600, 0), false);
-
-  const low = byId(evaluateBadges([meal('2026-09-01', 1399, 10)], goals));
-  assert.equal(low['calorie-window'].earned, false);
-  const hit = byId(evaluateBadges([meal('2026-09-04', 1400, 10), meal('2026-09-08', 900, 10)], goals));
-  assert.equal(hit['calorie-window'].earned, true);
-  assert.equal(hit['calorie-window'].earnedOn, '2026-09-04');
-  const high = byId(evaluateBadges([meal('2026-09-02', 2101, 10)], goals));
-  assert.equal(high['calorie-window'].earned, false);
+test('thirty days in a row earn The Ridge', () => {
+  const badges = byId(evaluateBadges(days('2026-03-01', 30)));
+  assert.equal(badges.ridge.earned, true);
+  assert.equal(badges.ridge.earnedOn, '2026-03-30');
+  assert.equal(badges.lake.earned, true);
 });
 
-test('protein badge uses the current target and ignores a zero target', () => {
-  const short = byId(evaluateBadges([meal('2026-09-01', 800, 119.9)], goals));
-  assert.equal(short.protein.earned, false);
-  const hit = byId(
-    evaluateBadges([meal('2026-09-01', 400, 40), meal('2026-09-03', 700, 80), meal('2026-09-03', 200, 40)], goals),
-  );
-  assert.equal(hit.protein.earned, true);
-  assert.equal(hit.protein.earnedOn, '2026-09-03');
-
-  const zeroGoal = byId(evaluateBadges([meal('2026-09-01', 500, 80)], { calorieGoal: 2000, proteinGoal: 0 }));
-  assert.equal(zeroGoal.protein.earned, false);
+test('42 logged days earn The Ridge without a 30-day streak', () => {
+  const result = evaluateBadges(days('2026-01-01', 42, 2));
+  const badges = byId(result);
+  assert.equal(result.loggedDays, 42);
+  assert.equal(result.longestStreak, 1);
+  assert.equal(badges.ridge.earned, true);
+  assert.equal(badges.lake.earned, true);
+  assert.equal(badges.watch.earned, false);
 });

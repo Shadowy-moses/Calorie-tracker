@@ -103,16 +103,11 @@ img { max-width: 100%; }
   background-position: center 30%;
 }
 
-.art-fen {
+.art-ridge {
   background-image:
-    linear-gradient(to bottom, rgba(10, 8, 6, 0.42), rgba(10, 8, 6, 0.05) 32%, rgba(10, 8, 6, 0.08) 58%, rgba(10, 8, 6, 0.55)),
-    url('./assets/fen-dusk.jpg');
-}
-
-.art-cliff {
-  background-image:
-    linear-gradient(to bottom, rgba(10, 8, 6, 0.42), rgba(10, 8, 6, 0.05) 32%, rgba(10, 8, 6, 0.08) 58%, rgba(10, 8, 6, 0.55)),
-    url('./assets/cliff-night.jpg');
+    linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)),
+    url('./assets/bg-ridge.webp');
+  background-position: center 58%;
 }
 
 .corner-marks { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
@@ -928,27 +923,16 @@ legend {
   color: #6d6256;
 }
 
-.medal-mark {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
+.medal-art {
+  width: 104px;
+  height: 104px;
+  object-fit: contain;
+  display: block;
 }
 
-.emblem { width: 52px; height: 52px; display: block; }
-
-.medal.locked .emblem { opacity: 0.38; }
-
-.medal-lock {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 22px;
-  height: 22px;
-  color: #3a332c;
-  background: #f4ead8;
-  border-radius: 50%;
+.medal.locked .medal-art {
+  filter: grayscale(1);
+  opacity: 0.5;
 }
 
 .medal-name {
@@ -991,24 +975,22 @@ legend {
   border: 1px solid #e0cfae;
 }
 
-.medal-pips {
-  display: grid;
-  grid-template-columns: repeat(3, 10px);
-  gap: 5px;
+.medal-faces {
+  display: flex;
+  gap: 4px;
   flex: none;
 }
 
-.medal-pips i {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #d9cbb4;
-  box-shadow: inset 0 0 0 1px #b7a78e;
+.medal-faces img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
 }
 
-.medal-pips i.on {
-  background: #d4b36a;
-  box-shadow: inset 0 0 0 1px #8a6230;
+.medal-faces img.off {
+  filter: grayscale(1);
+  opacity: 0.5;
 }
 
 .medal-teaser-copy {

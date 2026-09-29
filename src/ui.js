@@ -20,14 +20,12 @@ export function icon(name) {
 export function relicScreen({
   kicker = '',
   title,
-  art = 'fen',
   backHref = '',
   backLabel = 'Back',
   keepDate = false,
   artExtra = '',
   body = '',
 }) {
-  const artName = art === 'cliff' ? 'cliff' : 'fen';
   const back = backHref
     ? `<a class="back" href="${esc(backHref)}"${keepDate ? ' data-keep-date' : ''} aria-label="${esc(backLabel)}">${icon('back')}</a>`
     : '';
@@ -35,7 +33,7 @@ export function relicScreen({
     <div class="screen">
       <article class="relic">
         <div class="relic-rim">
-          <div class="relic-art art-${artName}${artExtra ? ' has-seal' : ''}">
+          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}">
             <div class="corner-marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <header class="plate${back ? ' with-back' : ''}">
               ${back}

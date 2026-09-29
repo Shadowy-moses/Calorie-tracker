@@ -19,7 +19,7 @@ export async function todayHtml() {
   const groups = groupByMeal(entries);
   const frequent = sortFrequent(foods).slice(0, 8);
   const date = prettyDate(today);
-  const badges = evaluateBadges(everyEntry, profile);
+  const badges = evaluateBadges(everyEntry);
 
   return relicScreen({
     art: 'fen',
