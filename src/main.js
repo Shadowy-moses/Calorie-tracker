@@ -1,4 +1,8 @@
-import '@fontsource/fraunces/600.css';
+import '@fontsource/cinzel/600.css';
+import '@fontsource/cinzel/700.css';
+import '@fontsource/crimson-pro/400.css';
+import '@fontsource/crimson-pro/600.css';
+import '@fontsource/crimson-pro/700.css';
 import { registerSW } from 'virtual:pwa-register';
 import { quickAddFood, resolveBarcode, saveManualAsCustomFood, saveManualPortion, undoQuickAdd } from './actions.js';
 import { setRenderer } from './bus.js';
