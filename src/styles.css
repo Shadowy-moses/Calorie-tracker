@@ -85,13 +85,13 @@ img { max-width: 100%; }
 
 .relic-art {
   position: relative;
-  min-height: 188px;
+  min-height: 148px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  padding: 22px 14px 16px;
+  padding: 16px 14px 14px;
   background-color: #1a140f;
   background-size: cover;
   background-position: center 42%;
@@ -889,7 +889,7 @@ legend {
 .recent h2 { margin: 4px; }
 
 .medal-summary {
-  margin: 10px 2px 12px;
+  margin: 8px 2px 10px;
   font-weight: 800;
   font-size: 14px;
   color: var(--gold-deep);
@@ -905,13 +905,12 @@ legend {
 }
 
 .medal {
-  min-height: 196px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
-  padding: 12px 8px 12px;
+  gap: 2px;
+  padding: 8px 6px 10px;
   border-radius: 14px;
   background: var(--cream);
   border: 1px solid #e0cfae;
@@ -931,13 +930,13 @@ legend {
 
 .medal-mark {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
 }
 
-.emblem { width: 72px; height: 72px; display: block; }
+.emblem { width: 52px; height: 52px; display: block; }
 
 .medal.locked .emblem { opacity: 0.38; }
 
@@ -954,7 +953,7 @@ legend {
 
 .medal-name {
   font-family: var(--display);
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 600;
   line-height: 1.15;
   color: var(--ink);

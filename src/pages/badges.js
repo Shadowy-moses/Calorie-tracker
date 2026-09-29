@@ -12,7 +12,7 @@ export async function badgesHtml() {
     kicker: profile.name,
     title: 'Badges',
     body: `
-      <p class="lede">Earned from your log, including past days. They follow your current targets.</p>
+      <p class="lede">Earned from meals on this phone, including past days. Uses your current targets.</p>
       <p class="medal-summary">${earned} of ${result.badges.length} earned · longest run ${result.longestStreak} ${result.longestStreak === 1 ? 'day' : 'days'}</p>
       <ul class="medal-grid">
         ${result.badges.map((badge) => medalCard(badge)).join('')}
