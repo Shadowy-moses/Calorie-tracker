@@ -4,7 +4,7 @@ import { dayTitle, esc, fmtKcal, fmtNum, parseNum, todayKey } from '../format.js
 import { MEALS, mealLabel } from '../meals.js';
 import { macrosForGrams } from '../nutrition.js';
 import { activeDate } from '../session.js';
-import { confirmSheet, icon, toast } from '../ui.js';
+import { confirmSheet, relicScreen, toast } from '../ui.js';
 
 const GRAM_CHIPS = [25, 50, 100, 150, 200];
 const SERVING_CHIPS = [0.5, 1, 1.5, 2, 3];
@@ -15,15 +15,13 @@ export function portionHtml(draft) {
       ? '#/today'
       : `#/day/${draft.date}`
     : '#/add';
-  return `
-    <div class="screen">
-      <header class="top">
-        <a class="back" href="${back}" aria-label="Back">${icon('back')}</a>
-        <div>
-          <p class="eyebrow">${draft.brand ? esc(draft.brand) : 'Portion'}</p>
-          <h1>${esc(draft.name)}</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'cliff',
+    kicker: draft.brand || 'Portion',
+    title: draft.name,
+    backHref: back,
+    backLabel: 'Back',
+    body: `
       ${draft.entryId ? '' : logDateNote()}
       <p class="per100">${esc(fmtKcal(draft.kcalPer100g))} kcal / 100 g · P ${esc(fmtNum(draft.proteinPer100g))} · C ${esc(fmtNum(draft.carbsPer100g))} · F ${esc(fmtNum(draft.fatPer100g))}</p>
       <form id="portion-form" class="stack-form">
@@ -48,10 +46,11 @@ export function portionHtml(draft) {
         <div class="chips" id="chips"></div>
         <div class="preview" id="preview"></div>
         <p id="portion-error" class="form-error" role="alert"></p>
-        <button class="btn" type="submit" id="portion-save">Add</button>
+        <button class="btn" type="submit" id="portion-save">${draft.entryId ? 'Save changes' : 'Add'}</button>
         ${draft.entryId ? '<button class="btn danger" type="button" id="portion-delete">Delete entry</button>' : ''}
       </form>
-    </div>`;
+    `,
+  });
 }
 
 function logDateNote() {

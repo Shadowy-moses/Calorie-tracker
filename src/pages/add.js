@@ -7,21 +7,18 @@ import { macrosForGrams } from '../nutrition.js';
 import { searchFoods } from '../off.js';
 import { activeDate, session } from '../session.js';
 import { cameraErrorMessage, startScanner } from '../scanner.js';
-import { icon } from '../ui.js';
+import { icon, relicScreen } from '../ui.js';
 import { customResultCards, myFoodsPanel } from './my-food.js';
 
 export async function addHtml() {
   const [logged, saved] = await Promise.all([foodsForProfile(), customFoodsForProfile()]);
   const foods = sortFrequent(logged).slice(0, 12);
   const tab = session.addTab || 'search';
-  return `
-    <div class="screen">
-      <header class="top">
-        <div>
-          <p class="eyebrow">Open Food Facts</p>
-          <h1>Add food</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'fen',
+    kicker: 'Search, scan, or type',
+    title: 'Add food',
+    body: `
       ${logBanner()}
       <div class="tabs" role="tablist" aria-label="How to add food">
         ${tabButton('search', 'Search', tab)}
@@ -33,7 +30,8 @@ export async function addHtml() {
       ${tab === 'scan' ? scanPanel() : ''}
       ${tab === 'mine' ? myFoodsPanel(saved) : ''}
       ${tab === 'manual' ? manualPanel() : ''}
-    </div>`;
+    `,
+  });
 }
 
 function tabButton(id, label, current) {

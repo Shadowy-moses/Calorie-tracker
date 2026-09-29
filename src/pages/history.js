@@ -2,7 +2,7 @@ import { allEntries, ensureProfile, entriesForDate } from '../db.js';
 import { dayHeading, dayTitle, esc, fmtKcal, fmtNum, todayKey } from '../format.js';
 import { groupByMeal, MEALS } from '../meals.js';
 import { sumEntries } from '../nutrition.js';
-import { heroCard } from '../ui.js';
+import { calorieSeal, macroBlock, relicScreen } from '../ui.js';
 import { entryRow } from './today.js';
 
 export async function historyHtml() {
@@ -15,14 +15,11 @@ export async function historyHtml() {
   }
   const days = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
 
-  return `
-    <div class="screen">
-      <header class="top">
-        <div>
-          <p class="eyebrow">${esc(profile.name)}</p>
-          <h1>History</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'cliff',
+    kicker: profile.name,
+    title: 'History',
+    body: `
       <label class="jump">
         <span>Jump to a day</span>
         <input id="jump-date" type="date" max="${today}" value="${today}" />
@@ -30,9 +27,9 @@ export async function historyHtml() {
       ${
         days.length
           ? `<div class="day-list">${days.map((date) => dayRow(date, byDate.get(date), profile, today)).join('')}</div>`
-          : `<section class="empty"><div class="empty-mark" aria-hidden="true"></div><h2>No days yet</h2><p>Meals you log will show up here with their totals.</p></section>`
-      }
-    </div>`;
+          : `<section class="empty"><h2>No days yet</h2><p>Meals you log will show up here with their totals.</p></section>`
+      }`,
+  });
 }
 
 function dayRow(date, entries, profile, today) {
@@ -53,7 +50,12 @@ function dayRow(date, entries, profile, today) {
 
 export async function dayHtml(date) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return `<div class="screen"><h1>Unknown day</h1><a href="#/history">Back to history</a></div>`;
+    return relicScreen({
+      kicker: 'History',
+      title: 'Unknown day',
+      art: 'cliff',
+      body: `<a class="btn" href="#/history">Back to history</a>`,
+    });
   }
   const today = todayKey();
   const [profile, entries] = await Promise.all([ensureProfile(), entriesForDate(date)]);
@@ -62,17 +64,16 @@ export async function dayHtml(date) {
   const heading = dayHeading(date, today);
   const logDate = date === today ? '' : date;
 
-  return `
-    <div class="screen">
-      <header class="top">
-        <a class="back" href="#/history" aria-label="Back to history">${backIcon()}</a>
-        <div>
-          <p class="eyebrow">${esc(heading.eyebrow)}</p>
-          <h1>${esc(heading.title)}</h1>
-        </div>
-      </header>
-      ${heroCard(totals, profile)}
-      <a class="btn day-add" href="#/add" data-date="${esc(logDate || today)}">Log food on this day</a>
+  return relicScreen({
+    art: 'fen',
+    kicker: heading.eyebrow,
+    title: heading.title,
+    backHref: '#/history',
+    backLabel: 'Back to history',
+    artExtra: calorieSeal(totals, profile),
+    body: `
+      ${macroBlock(totals, profile)}
+      <a class="btn cta add-dock" href="#/add" data-date="${esc(logDate || today)}">Log food on this day</a>
       ${
         entries.length
           ? `<section class="meals">${MEALS.map((meal) => {
@@ -82,10 +83,6 @@ export async function dayHtml(date) {
               return `<section class="meal" data-meal="${meal.id}"><div class="meal-head"><h2>${meal.label}</h2><span>${fmtKcal(kcal)} kcal</span></div><div class="entry-list">${list.map(entryRow).join('')}</div></section>`;
             }).join('')}</section>`
           : `<section class="empty compact"><p>Nothing logged on this day.</p></section>`
-      }
-    </div>`;
-}
-
-function backIcon() {
-  return `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
+      }`,
+  });
 }

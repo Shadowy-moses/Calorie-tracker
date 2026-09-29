@@ -1,18 +1,15 @@
 import { requestRender } from '../bus.js';
 import { clearProfile, DEFAULT_GOALS, ensureProfile, saveGoals } from '../db.js';
 import { esc, fmtNum, parseNum } from '../format.js';
-import { confirmSheet, toast } from '../ui.js';
+import { confirmSheet, relicScreen, toast } from '../ui.js';
 
 export async function settingsHtml() {
   const profile = await ensureProfile();
-  return `
-    <div class="screen">
-      <header class="top">
-        <div>
-          <p class="eyebrow">${esc(profile.name)}</p>
-          <h1>Settings</h1>
-        </div>
-      </header>
+  return relicScreen({
+    art: 'cliff',
+    kicker: profile.name,
+    title: 'Settings',
+    body: `
       <form id="settings-form" class="stack-form">
         <p class="lede">Daily targets for ${esc(profile.name)}. A starting point, not medical advice. Saved only on this phone.</p>
         <label>
@@ -39,8 +36,8 @@ export async function settingsHtml() {
         <h2>On this phone</h2>
         <p>Meals, My foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
         <button class="btn danger" type="button" id="clear-data">Erase everything on this phone</button>
-      </section>
-    </div>`;
+      </section>`,
+  });
 }
 
 export function mountSettings(root) {

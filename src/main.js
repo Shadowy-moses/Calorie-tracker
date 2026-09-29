@@ -12,9 +12,10 @@ import { dayHtml, historyHtml } from './pages/history.js';
 import { customLogHtml, mountCustomLog, mountMyFoodForm, myFoodFormHtml } from './pages/my-food.js';
 import { mountPortion, portionHtml } from './pages/portion.js';
 import { mountSettings, settingsHtml } from './pages/settings.js';
+import { badgesHtml } from './pages/badges.js';
 import { todayHtml } from './pages/today.js';
 import { session } from './session.js';
-import { confirmSheet, tabs, toast } from './ui.js';
+import { confirmSheet, relicScreen, tabs, toast } from './ui.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -29,6 +30,7 @@ let renderToken = 0;
 const TITLES = {
   today: 'Today',
   add: 'Add food',
+  badges: 'Badges',
   history: 'History',
   settings: 'Settings',
   portion: 'Portion',
@@ -84,7 +86,13 @@ function parseRoute(hash) {
       name: 'portion',
       tab: 'add',
       html: async () => {
-        if (!session.draft) return `<div class="screen"><p class="muted pad">Choose a food first.</p><a class="btn" href="#/add">Add food</a></div>`;
+        if (!session.draft) {
+          return relicScreen({
+            kicker: 'Portion',
+            title: 'Choose a food',
+            body: `<p class="lede">Pick something to log first.</p><a class="btn" href="#/add">Add food</a>`,
+          });
+        }
         return portionHtml(session.draft);
       },
       mount: (root) => {
@@ -143,6 +151,9 @@ function parseRoute(hash) {
   if (path === '#/history') {
     return { name: 'history', tab: 'history', html: historyHtml };
   }
+  if (path === '#/badges') {
+    return { name: 'badges', tab: 'badges', html: badgesHtml };
+  }
   const day = path.match(/^#\/day\/(\d{4}-\d{2}-\d{2})$/);
   if (day) {
     const date = day[1];
@@ -156,7 +167,14 @@ function parseRoute(hash) {
       tab: 'add',
       html: async () => {
         const record = await getFood(id);
-        if (!record) return `<div class="screen"><h1>Food not found</h1><a href="#/add">Back</a></div>`;
+        if (!record) {
+          return relicScreen({
+            kicker: 'Food',
+            title: 'Not found',
+            art: 'cliff',
+            body: `<p class="lede">That food isn’t on this phone anymore.</p><a class="btn" href="#/add">Back</a>`,
+          });
+        }
         session.draft = draftFromFood(record, {
           grams: record.lastGrams || record.servingGrams || 100,
           meal: record.lastMeal || mealForNow(),
@@ -177,7 +195,13 @@ function parseRoute(hash) {
       tab: 'today',
       html: async () => {
         const record = await getEntry(id);
-        if (!record) return `<div class="screen"><h1>Entry not found</h1><a class="btn" href="#/today">Back to today</a></div>`;
+        if (!record) {
+          return relicScreen({
+            kicker: 'Log',
+            title: 'Entry not found',
+            body: `<a class="btn" href="#/today">Back to today</a>`,
+          });
+        }
         if (isCustomEntry(record)) return customLogHtml(draftFromCustomEntry(record));
         session.draft = draftFromEntry(record);
         return portionHtml(session.draft);
@@ -303,7 +327,12 @@ const addHandlers = {
 };
 
 function missingFoodHtml() {
-  return `<div class="screen"><h1>Food not found</h1><p class="lede">It isn’t in My foods on this phone.</p><a class="btn" href="#/add">Back</a></div>`;
+  return relicScreen({
+    kicker: 'My foods',
+    title: 'Food not found',
+    art: 'cliff',
+    body: `<p class="lede">It isn’t in My foods on this phone.</p><a class="btn" href="#/add">Back</a>`,
+  });
 }
 
 function isCustomEntry(entry) {
@@ -416,6 +445,10 @@ ensureProfile()
     else void render();
   })
   .catch((error) => {
-    view.innerHTML = `<div class="screen"><h1>Couldn’t open your log</h1><p>${esc(error.message || 'Storage is unavailable in this browser.')}</p></div>`;
+    view.innerHTML = relicScreen({
+      kicker: 'Log',
+      title: 'Couldn’t open your log',
+      body: `<p class="lede">${esc(error.message || 'Storage is unavailable in this browser.')}</p>`,
+    });
     tabbar.hidden = true;
   });
