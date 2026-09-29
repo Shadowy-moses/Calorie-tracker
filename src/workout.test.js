@@ -111,9 +111,24 @@ test('the card painting follows the highest unlocked workout count', () => {
   assert.equal(resolveBackgroundId('auto', 0), 'ridge');
   assert.equal(resolveBackgroundId('auto', 6), 'ridge');
   assert.equal(resolveBackgroundId('auto', 7), 'week');
+  assert.equal(resolveBackgroundId('auto', 14), 'beast');
+  assert.equal(resolveBackgroundId('auto', 21), 'arch');
   assert.equal(resolveBackgroundId('auto', 30), 'month');
   assert.equal(resolveBackgroundId('ridge', 30), 'ridge');
   assert.equal(resolveBackgroundId('week', 0), 'ridge');
   assert.equal(resolveBackgroundId('month', 7), 'week');
+  assert.equal(resolveBackgroundId('beast', 7), 'week');
+  assert.equal(resolveBackgroundId('arch', 14), 'beast');
   assert.equal(resolveBackgroundId('nope', 30), 'month');
+});
+
+test('nutrition paintings unlock on their own and stay below a higher Climber painting', () => {
+  assert.equal(resolveBackgroundId('auto', { calorieDays: 3 }), 'road');
+  assert.equal(resolveBackgroundId('auto', { calorieDays: 2, proteinDays: 3 }), 'lanterns');
+  assert.equal(resolveBackgroundId('auto', { calorieDays: 7, bothDays: 7 }), 'wheel');
+  assert.equal(resolveBackgroundId('auto', { calorieDays: 30, workoutDays: 7 }), 'chain');
+  assert.equal(resolveBackgroundId('auto', { calorieDays: 30, proteinDays: 30, bothDays: 7, workoutDays: 30 }), 'month');
+  assert.equal(resolveBackgroundId('cove', { calorieDays: 7, workoutDays: 30 }), 'cove');
+  assert.equal(resolveBackgroundId('road', { calorieDays: 0 }), 'ridge');
+  assert.equal(resolveBackgroundId('falls', { calorieDays: 14, proteinDays: 14 }), 'falls');
 });

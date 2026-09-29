@@ -31,13 +31,23 @@ html, body { margin: 0; }
 
 body {
   min-height: 100dvh;
-  background:
-    radial-gradient(700px 280px at 50% -40px, rgba(212, 179, 106, 0.16), transparent 60%),
-    var(--table);
+  background: var(--table);
   color: var(--cream);
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.4;
+}
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #1a140f;
+  background-image: var(--scene, url("./assets/bg-ridge.webp"));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 button, input { font: inherit; color: inherit; }
@@ -56,90 +66,62 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 
 .app-frame {
+  position: relative;
+  z-index: 1;
   width: min(480px, 100%);
   margin: 0 auto;
   min-height: 100dvh;
 }
 
 .screen {
-  padding: calc(12px + env(safe-area-inset-top)) 12px calc(var(--nav-h) + 36px);
+  padding: calc(10px + env(safe-area-inset-top)) 16px calc(var(--nav-h) + 28px);
 }
 
 .relic {
-  min-height: calc(100dvh - var(--nav-h) - 28px - env(safe-area-inset-top));
+  min-height: calc(100dvh - var(--nav-h) - 20px - env(safe-area-inset-top));
   display: flex;
   flex-direction: column;
-  background: #14110e;
-  padding: 8px;
-  border-radius: 22px;
-  box-shadow:
-    0 0 0 1px #3d311f,
-    var(--shadow);
+  background: transparent;
+  padding: 0;
 }
 
 .relic-rim {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--gold-line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--parchment);
-  box-shadow: inset 0 0 0 1px #6e5428;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .relic-art {
   position: relative;
-  min-height: 116px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 14px 14px;
-  background-color: #1a140f;
-  background-size: cover;
-  background-position: center 42%;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 28px 8px 6px;
+  background: none;
 }
 
 .relic-art.has-seal {
-  min-height: 372px;
-  justify-content: space-between;
-  background-position: center 30%;
+  min-height: 0;
+  padding-top: 36px;
+  gap: 16px;
 }
 
 .relic-art.has-seal.is-compact {
-  min-height: 228px;
+  min-height: 0;
+  padding-top: 22px;
 }
-
-.art-ridge {
-  background-image:
-    linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)),
-    url('./assets/bg-ridge.webp');
-  background-position: center 58%;
-}
-
-.corner-marks { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-
-.corner-marks i {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  background: var(--gold-line);
-  transform: rotate(45deg);
-  box-shadow: 0 0 0 1px #5c4320;
-}
-
-.corner-marks i:nth-child(1) { top: 9px; left: 9px; }
-.corner-marks i:nth-child(2) { top: 9px; right: 9px; }
-.corner-marks i:nth-child(3) { bottom: 9px; left: 9px; }
-.corner-marks i:nth-child(4) { bottom: 9px; right: 9px; }
 
 .plate,
 .seal {
   position: relative;
   z-index: 2;
-  width: min(100%, 300px);
+  width: min(100%, 280px);
   background: linear-gradient(#fffaf1, #f3e6cf);
   color: var(--ink);
   border: 1px solid #e7d3a2;
@@ -212,21 +194,22 @@ h1, h2, p { margin: 0; }
   flex: 1;
   color-scheme: light;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.55), transparent 42%),
-    var(--parchment);
-  padding: 16px 14px 18px;
+  background: transparent;
+  padding: 8px 0 12px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.relic-sheet::before {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #c6a15a, transparent);
+.relic-sheet > *:not(.btn):not(.meals):not(.medal-grid):not(.climber-moves):not(.climber-actions):not(.day-list):not(.tabs) {
+  background: linear-gradient(#fffaf1, #f3e6cf);
+  border: 1px solid #e7d3a2;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow:
+    0 0 0 1px rgba(28, 18, 8, 0.45),
+    0 10px 22px rgba(0, 0, 0, 0.32);
 }
 
 .plate .back {
@@ -281,7 +264,7 @@ h1, h2, p { margin: 0; }
   position: sticky;
   bottom: calc(var(--nav-h) + 8px);
   z-index: 6;
-  margin: 14px 0 4px;
+  margin: 0;
 }
 
 .screen:has(.add-dock) {
@@ -294,7 +277,7 @@ h1, h2, p { margin: 0; }
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  margin: 18px 2px 8px;
+  margin: 0 2px 8px;
 }
 
 .section-head a {
@@ -455,7 +438,7 @@ h2 {
 }
 
 .btn.secondary {
-  background: transparent;
+  background: var(--cream);
   color: var(--ink);
   border: 1px solid #c6a56a;
   box-shadow: none;
@@ -879,7 +862,7 @@ legend {
 .jump input { width: 11.5rem; }
 
 .about {
-  margin-top: 28px;
+  margin-top: 0;
   display: grid;
   gap: 10px;
 }
@@ -987,8 +970,13 @@ legend {
 .medal-faces {
   display: flex;
   gap: 4px;
-  flex: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.medal-faces::-webkit-scrollbar { display: none; }
 
 .medal-faces img {
   width: 28px;
@@ -1097,10 +1085,22 @@ legend {
 
 .art-choice {
   border: 0;
-  margin: 16px 0 0;
+  margin: 0;
   padding: 0;
   display: grid;
   gap: 8px;
+}
+
+.meals { display: grid; gap: 14px; }
+
+.meal {
+  background: linear-gradient(#fffaf1, #f3e6cf);
+  border: 1px solid #e7d3a2;
+  border-radius: 16px;
+  padding: 10px 8px 12px;
+  box-shadow:
+    0 0 0 1px rgba(28, 18, 8, 0.45),
+    0 10px 22px rgba(0, 0, 0, 0.32);
 }
 
 .art-option {
