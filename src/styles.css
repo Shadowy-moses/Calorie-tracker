@@ -924,10 +924,16 @@ legend {
 }
 
 .medal-art {
-  width: 104px;
-  height: 104px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   display: block;
+}
+
+.medal-art[data-temp-art="true"] {
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #c6a15a;
 }
 
 .medal.locked .medal-art {
@@ -982,10 +988,11 @@ legend {
 }
 
 .medal-faces img {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   display: block;
+  border-radius: 50%;
 }
 
 .medal-faces img.off {
@@ -1030,7 +1037,7 @@ legend {
   height: var(--nav-h);
   padding: 6px 4px env(safe-area-inset-bottom);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   background: rgba(16, 14, 12, 0.96);
   border-top: 1px solid #3d311f;
 }
@@ -1044,13 +1051,73 @@ legend {
   min-height: 48px;
   text-decoration: none;
   color: var(--faint);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.01em;
   border-radius: 12px;
 }
 
+.tab .icon { width: 18px; height: 18px; }
+
 .tab.on { color: var(--gold); }
+
+.climber-moves {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.climber-moves li {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--cream);
+  border: 1px solid #e0cfae;
+  font-weight: 800;
+}
+
+.climber-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.climber-leftovers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.art-choice {
+  border: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.art-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--cream);
+  border: 1px solid #e0cfae;
+}
+
+.art-option input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+.art-option:has(input:disabled) { opacity: 0.55; }
 
 .toast {
   position: fixed;

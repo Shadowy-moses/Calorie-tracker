@@ -12,8 +12,10 @@ import { dayHtml, historyHtml } from './pages/history.js';
 import { customLogHtml, mountCustomLog, mountMyFoodForm, myFoodFormHtml } from './pages/my-food.js';
 import { mountPortion, portionHtml } from './pages/portion.js';
 import { mountSettings, settingsHtml } from './pages/settings.js';
+import { applyCardArt } from './card-art.js';
 import { badgesHtml } from './pages/badges.js';
 import { todayHtml } from './pages/today.js';
+import { mountWorkout, workoutHtml } from './pages/workout.js';
 import { session } from './session.js';
 import { confirmSheet, relicScreen, tabs, toast } from './ui.js';
 import './styles.css';
@@ -30,6 +32,7 @@ let renderToken = 0;
 const TITLES = {
   today: 'Today',
   add: 'Add food',
+  workout: 'The Climber',
   badges: 'Badges',
   history: 'History',
   settings: 'Settings',
@@ -57,6 +60,7 @@ async function render() {
   document.title = `${TITLES[route.name] || 'Calories'} · Calorie Tracker`;
   tabbar.innerHTML = tabs(route.tab);
   tabbar.hidden = false;
+  await applyCardArt();
   const html = await route.html();
   if (token !== renderToken) return;
   view.innerHTML = html;
@@ -153,6 +157,9 @@ function parseRoute(hash) {
   }
   if (path === '#/badges') {
     return { name: 'badges', tab: 'badges', html: badgesHtml };
+  }
+  if (path === '#/workout') {
+    return { name: 'workout', tab: 'workout', html: workoutHtml, mount: mountWorkout };
   }
   const day = path.match(/^#\/day\/(\d{4}-\d{2}-\d{2})$/);
   if (day) {

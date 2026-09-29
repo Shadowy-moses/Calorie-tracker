@@ -1,5 +1,5 @@
 import { evaluateBadges } from '../badges.js';
-import { allEntries, entriesForDate, ensureProfile, foodsForProfile } from '../db.js';
+import { allEntries, entriesForDate, ensureProfile, foodsForProfile, workoutsForProfile } from '../db.js';
 import { esc, fmtKcal, fmtNum, prettyDate, todayKey } from '../format.js';
 import { sortFrequent } from '../food.js';
 import { groupByMeal, MEALS, mealForNow, mealLabel } from '../meals.js';
@@ -9,17 +9,18 @@ import { calorieSeal, icon, macroBlock, relicScreen } from '../ui.js';
 
 export async function todayHtml() {
   const today = todayKey();
-  const [profile, entries, foods, everyEntry] = await Promise.all([
+  const [profile, entries, foods, everyEntry, workouts] = await Promise.all([
     ensureProfile(),
     entriesForDate(today),
     foodsForProfile(),
     allEntries(),
+    workoutsForProfile(),
   ]);
   const totals = sumEntries(entries);
   const groups = groupByMeal(entries);
   const frequent = sortFrequent(foods).slice(0, 8);
   const date = prettyDate(today);
-  const badges = evaluateBadges(everyEntry);
+  const badges = evaluateBadges(everyEntry, workouts);
 
   return relicScreen({
     art: 'fen',

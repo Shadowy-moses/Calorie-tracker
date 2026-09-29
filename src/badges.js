@@ -29,6 +29,22 @@ export const BADGE_LIST = [
     needStreak: 30,
     needDays: 42,
   },
+  {
+    id: 'first-week',
+    name: 'First week',
+    hint: 'Finish The Climber on 7 different days.',
+    kind: 'workout-days',
+    needDays: 7,
+    temporary: true,
+  },
+  {
+    id: 'first-month',
+    name: 'First month',
+    hint: 'Finish The Climber on 30 different days.',
+    kind: 'workout-days',
+    needDays: 30,
+    temporary: true,
+  },
 ];
 
 export function dayNumber(iso) {
@@ -41,25 +57,27 @@ export function dayNumber(iso) {
  * Badges come from the log each time, so past days count and deleting a meal
  * can lock one again. A logged day is a calendar day with at least one meal.
  */
-export function evaluateBadges(entries) {
+export function evaluateBadges(entries, workouts = []) {
   const dates = loggedDates(entries);
+  const workoutDates = loggedDates(workouts);
   const longestStreak = streakLength(dates);
   const loggedDays = dates.length;
 
   const badges = BADGE_LIST.map((def) => {
-    const earnedOn = earnedDate(def, dates);
+    const earnedOn = earnedDate(def, dates, workoutDates);
     const earned = Boolean(earnedOn);
+    const count = def.kind === 'workout-days' ? workoutDates.length : loggedDays;
     return {
       ...def,
       earned,
       earnedOn,
-      longest: longestStreak,
-      loggedDays,
-      progress: earned ? '' : progressText(def, longestStreak, loggedDays),
+      longest: def.kind === 'workout-days' ? 0 : longestStreak,
+      loggedDays: count,
+      progress: earned ? '' : progressText(def, longestStreak, count),
     };
   });
 
-  return { badges, longestStreak, loggedDays };
+  return { badges, longestStreak, loggedDays, workoutDays: workoutDates.length };
 }
 
 function loggedDates(entries) {
@@ -71,14 +89,15 @@ function loggedDates(entries) {
   return [...seen].sort();
 }
 
-function earnedDate(def, dates) {
+function earnedDate(def, dates, workoutDates) {
+  if (def.kind === 'workout-days') return workoutDates[def.needDays - 1] || null;
   if (def.kind === 'days') return dates[def.needDays - 1] || null;
   if (def.kind === 'streak') return firstStreakEnd(dates, def.need);
   return earlier(firstStreakEnd(dates, def.needStreak), dates[def.needDays - 1] || null);
 }
 
 function progressText(def, longest, loggedDays) {
-  if (def.kind === 'days') return `${loggedDays} of ${def.needDays} days`;
+  if (def.kind === 'workout-days' || def.kind === 'days') return `${loggedDays} of ${def.needDays} days`;
   if (def.kind === 'streak') return `${longest} of ${def.need} days in a row`;
   return `${longest} of ${def.needStreak} in a row · ${loggedDays} of ${def.needDays} days`;
 }

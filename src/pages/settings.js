@@ -1,10 +1,13 @@
+import { BACKGROUND_IDS } from '../backgrounds.js';
 import { requestRender } from '../bus.js';
-import { clearProfile, DEFAULT_GOALS, ensureProfile, saveGoals } from '../db.js';
+import { clearProfile, DEFAULT_GOALS, ensureProfile, saveArtChoice, saveGoals, workoutsForProfile } from '../db.js';
 import { esc, fmtNum, parseNum } from '../format.js';
 import { confirmSheet, relicScreen, toast } from '../ui.js';
+import { finishedDates } from '../workout.js';
 
 export async function settingsHtml() {
-  const profile = await ensureProfile();
+  const [profile, workouts] = await Promise.all([ensureProfile(), workoutsForProfile()]);
+  const finishedDays = finishedDates(workouts).length;
   return relicScreen({
     art: 'cliff',
     kicker: profile.name,
@@ -32,9 +35,14 @@ export async function settingsHtml() {
         <button class="btn" type="submit">Save targets</button>
         <button class="btn ghost" type="button" id="reset-goals">Reset to defaults</button>
       </form>
+      <fieldset class="art-choice">
+        <legend>Card painting</legend>
+        <p class="lede">Highest unlocked is used on its own. Week and month paintings are stand-in landscapes until finished art replaces them.</p>
+        ${paintingOptions(profile.artChoice || 'auto', finishedDays)}
+      </fieldset>
       <section class="about">
         <h2>On this phone</h2>
-        <p>Meals, My foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
+        <p>Meals, workouts, My foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
         <button class="btn danger" type="button" id="clear-data">Erase everything on this phone</button>
       </section>`,
   });
@@ -70,23 +78,51 @@ export function mountSettings(root) {
   const onClear = async () => {
     const ok = await confirmSheet({
       title: 'Erase this phone’s log?',
-      text: 'Meals and My foods for David will be deleted. Targets go back to the starting numbers. This cannot be undone.',
+      text: 'Meals, workouts, and My foods for David will be deleted. Targets and the card painting go back to the start. This cannot be undone.',
       confirmLabel: 'Erase',
       danger: true,
     });
     if (!ok) return;
     await clearProfile();
     await saveGoals({ ...DEFAULT_GOALS });
+    await saveArtChoice('auto');
     toast('Log erased');
     requestRender();
   };
   root.querySelector('#clear-data').addEventListener('click', onClear);
 
+  const onArt = async (event) => {
+    const input = event.target.closest('input[name="artChoice"]');
+    if (!input || input.disabled) return;
+    await saveArtChoice(input.value);
+    toast('Painting updated');
+    requestRender();
+  };
+  const artField = root.querySelector('.art-choice');
+  artField.addEventListener('change', onArt);
+
   return () => {
     form.removeEventListener('submit', onSubmit);
     root.querySelector('#reset-goals')?.removeEventListener('click', onReset);
     root.querySelector('#clear-data')?.removeEventListener('click', onClear);
+    artField.removeEventListener('change', onArt);
   };
+}
+
+function paintingOptions(choice, finishedDays) {
+  const options = [{ id: 'auto', label: 'Highest unlocked', needDays: 0 }, ...BACKGROUND_IDS];
+  return options
+    .map((art) => {
+      const locked = finishedDays < art.needDays;
+      const checked = choice === art.id ? ' checked' : '';
+      const note = art.needDays ? ` · ${art.needDays} workout days` : '';
+      return `
+        <label class="art-option">
+          <input type="radio" name="artChoice" value="${esc(art.id)}"${checked}${locked ? ' disabled' : ''} />
+          <span>${esc(art.label)}${locked ? ' (locked)' : ''}${esc(note)}</span>
+        </label>`;
+    })
+    .join('');
 }
 
 function readGoals(form) {

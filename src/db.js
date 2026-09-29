@@ -2,8 +2,9 @@
  * On-device store. Every food and meal row carries profileId so another
  * person can be added later without reshaping the data. v1 only writes David.
  *
- * Version 2 adds customFoods ("My foods"). Upgrades only create stores that
- * are missing, so meals and foods already on the phone stay put.
+ * Version 2 adds customFoods ("My foods"). Version 3 adds workouts
+ * (The Climber). Upgrades only create stores that are missing, so meals
+ * already on the phone stay put.
  */
 
 export const ACTIVE_PROFILE_ID = 'david';
@@ -16,7 +17,7 @@ export const DEFAULT_GOALS = {
 };
 
 const DB_NAME = 'calorie-tracker';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise;
 
@@ -37,6 +38,11 @@ export function upgradeDatabase(db) {
   if (!db.objectStoreNames.contains('customFoods')) {
     const customFoods = db.createObjectStore('customFoods', { keyPath: 'id' });
     customFoods.createIndex('byProfile', 'profileId');
+  }
+  if (!db.objectStoreNames.contains('workouts')) {
+    const workouts = db.createObjectStore('workouts', { keyPath: 'id' });
+    workouts.createIndex('byProfile', 'profileId');
+    workouts.createIndex('byProfileDate', ['profileId', 'date']);
   }
 }
 
@@ -93,6 +99,11 @@ export async function ensureProfile() {
 export async function saveGoals(goals) {
   const profile = await ensureProfile();
   return putProfile({ ...profile, ...goals, updatedAt: Date.now() });
+}
+
+export async function saveArtChoice(artChoice) {
+  const profile = await ensureProfile();
+  return putProfile({ ...profile, artChoice, updatedAt: Date.now() });
 }
 
 export async function getFood(id) {
@@ -182,6 +193,24 @@ export async function entriesForDate(date, profileId = ACTIVE_PROFILE_ID) {
   return rows || [];
 }
 
+export async function getWorkout(id) {
+  const { objectStore } = await store('workouts', 'readonly');
+  return requestResult(objectStore.get(id));
+}
+
+export async function putWorkout(workout) {
+  const { tx, objectStore } = await store('workouts', 'readwrite');
+  objectStore.put(workout);
+  await txDone(tx);
+  return workout;
+}
+
+export async function workoutsForProfile(profileId = ACTIVE_PROFILE_ID) {
+  const { objectStore } = await store('workouts', 'readonly');
+  const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
+  return rows || [];
+}
+
 export async function allEntries(profileId = ACTIVE_PROFILE_ID) {
   const { objectStore } = await store('entries', 'readonly');
   const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
@@ -199,7 +228,7 @@ export async function adjustUseCount(foodId, delta) {
 export async function clearProfile(profileId = ACTIVE_PROFILE_ID) {
   const db = await database();
   await new Promise((resolve, reject) => {
-    const tx = db.transaction(['foods', 'entries', 'customFoods'], 'readwrite');
+    const tx = db.transaction(['foods', 'entries', 'customFoods', 'workouts'], 'readwrite');
     const wipe = (storeName) => {
       const index = tx.objectStore(storeName).index('byProfile');
       index.openCursor(IDBKeyRange.only(profileId)).onsuccess = (event) => {
@@ -212,6 +241,7 @@ export async function clearProfile(profileId = ACTIVE_PROFILE_ID) {
     wipe('foods');
     wipe('entries');
     wipe('customFoods');
+    wipe('workouts');
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('Could not erase the log'));

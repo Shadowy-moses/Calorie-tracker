@@ -1,9 +1,11 @@
+import { activeCardArt } from './card-art.js';
 import { esc, fmtKcal, pct } from './format.js';
 
 const ICONS = {
   today:
     '<circle cx="12" cy="12" r="4"/><path d="M12 2.8v1.8M12 19.4v1.8M4.6 4.6l1.3 1.3M18.1 18.1l1.3 1.3M2.8 12h1.8M19.4 12h1.8M4.6 19.4l1.3-1.3M18.1 5.9l1.3-1.3"/>',
   add: '<path d="M12 5v14M5 12h14"/>',
+  workout: '<path d="M4 19h3.2V15.8H10.4V12.6h3.2V9.4H16.8V6.2H20"/>',
   badges: '<circle cx="12" cy="9" r="4.2"/><path d="M9.2 12.6 8 20l4-2.2L16 20l-1.2-7.4"/>',
   history: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3.5v3M16 3.5v3M4 10h16"/>',
   settings: '<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/>',
@@ -29,11 +31,12 @@ export function relicScreen({
   const back = backHref
     ? `<a class="back" href="${esc(backHref)}"${keepDate ? ' data-keep-date' : ''} aria-label="${esc(backLabel)}">${icon('back')}</a>`
     : '';
+  const painting = activeCardArt();
   return `
     <div class="screen">
       <article class="relic">
         <div class="relic-rim">
-          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}">
+          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}" style="background-image: linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)), url('${esc(painting)}')">
             <div class="corner-marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <header class="plate${back ? ' with-back' : ''}">
               ${back}
@@ -160,6 +163,7 @@ export function tabs(active) {
   const items = [
     ['today', '#/today', 'Today'],
     ['add', '#/add', 'Add'],
+    ['workout', '#/workout', 'Workout'],
     ['badges', '#/badges', 'Badges'],
     ['history', '#/history', 'History'],
     ['settings', '#/settings', 'Settings'],
