@@ -1,13 +1,13 @@
-import { BACKGROUND_IDS } from '../backgrounds.js';
+import { backgroundProgress } from '../badges.js';
+import { BACKGROUND_IDS, backgroundIsUnlocked, backgroundUnlockNote } from '../backgrounds.js';
 import { requestRender } from '../bus.js';
-import { clearProfile, DEFAULT_GOALS, ensureProfile, saveArtChoice, saveGoals, workoutsForProfile } from '../db.js';
+import { allEntries, clearProfile, DEFAULT_GOALS, ensureProfile, saveArtChoice, saveGoals, workoutsForProfile } from '../db.js';
 import { esc, fmtNum, parseNum } from '../format.js';
 import { confirmSheet, relicScreen, toast } from '../ui.js';
-import { finishedDates } from '../workout.js';
 
 export async function settingsHtml() {
-  const [profile, workouts] = await Promise.all([ensureProfile(), workoutsForProfile()]);
-  const finishedDays = finishedDates(workouts).length;
+  const [profile, workouts, entries] = await Promise.all([ensureProfile(), workoutsForProfile(), allEntries()]);
+  const progress = backgroundProgress(entries, workouts, profile);
   return relicScreen({
     art: 'cliff',
     kicker: profile.name,
@@ -36,9 +36,9 @@ export async function settingsHtml() {
         <button class="btn ghost" type="button" id="reset-goals">Reset to defaults</button>
       </form>
       <fieldset class="art-choice">
-        <legend>Card painting</legend>
-        <p class="lede">Highest unlocked is used on its own. The Yard opens after 7 workout days, The Heights after 30.</p>
-        ${paintingOptions(profile.artChoice || 'auto', finishedDays)}
+        <legend>Background</legend>
+        <p class="lede">The highest unlocked painting fills the screen. Pick another one you have opened to switch back. Ridge stays until something else unlocks.</p>
+        ${paintingOptions(profile.artChoice || 'auto', progress)}
       </fieldset>
       <section class="about">
         <h2>On this phone</h2>
@@ -109,17 +109,22 @@ export function mountSettings(root) {
   };
 }
 
-function paintingOptions(choice, finishedDays) {
-  const options = [{ id: 'auto', label: 'Highest unlocked', needDays: 0 }, ...BACKGROUND_IDS];
+function paintingOptions(choice, progress) {
+  const saved = choice || 'auto';
+  const savedArt = BACKGROUND_IDS.find((art) => art.id === saved);
+  const savedOk = saved === 'auto' || (savedArt && backgroundIsUnlocked(savedArt, progress));
+  const selected = savedOk ? saved : 'auto';
+  const options = [{ id: 'auto', label: 'Highest unlocked', track: 'start', need: 0 }, ...BACKGROUND_IDS];
   return options
     .map((art) => {
-      const locked = finishedDays < art.needDays;
-      const checked = choice === art.id ? ' checked' : '';
-      const note = art.needDays ? ` · ${art.needDays} workout days` : '';
+      const locked = art.id !== 'auto' && !backgroundIsUnlocked(art, progress);
+      const checked = selected === art.id ? ' checked' : '';
+      const note = backgroundUnlockNote(art);
+      const suffix = `${locked ? ' (locked)' : ''}${note ? ` · ${note}` : ''}`;
       return `
         <label class="art-option">
           <input type="radio" name="artChoice" value="${esc(art.id)}"${checked}${locked ? ' disabled' : ''} />
-          <span>${esc(art.label)}${locked ? ' (locked)' : ''}${esc(note)}</span>
+          <span>${esc(art.label)}${esc(suffix)}</span>
         </label>`;
     })
     .join('');

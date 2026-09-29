@@ -1,4 +1,3 @@
-import { activeCardArt } from './card-art.js';
 import { esc, fmtKcal, pct } from './format.js';
 
 const ICONS = {
@@ -32,13 +31,11 @@ export function relicScreen({
   const back = backHref
     ? `<a class="back" href="${esc(backHref)}"${keepDate ? ' data-keep-date' : ''} aria-label="${esc(backLabel)}">${icon('back')}</a>`
     : '';
-  const painting = activeCardArt();
   return `
     <div class="screen">
       <article class="relic">
         <div class="relic-rim">
-          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}${compact ? ' is-compact' : ''}" style="background-image: linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)), url('${esc(painting)}')">
-            <div class="corner-marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="relic-art${artExtra ? ' has-seal' : ''}${compact ? ' is-compact' : ''}">
             <header class="plate${back ? ' with-back' : ''}">
               ${back}
               <div class="plate-copy">
