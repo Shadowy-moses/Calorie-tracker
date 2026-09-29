@@ -1,17 +1,11 @@
+import heights from './assets/bg-heights.webp';
 import ridge from './assets/bg-ridge.webp';
-import month from './assets/temp-climber-month.jpg';
-import week from './assets/temp-climber-week.jpg';
+import yard from './assets/bg-yard.webp';
 import { resolveBackgroundId } from './backgrounds.js';
 import { ensureProfile, workoutsForProfile } from './db.js';
 import { finishedDates } from './workout.js';
 
-/**
- * TEMP ART. Replace these two files when final paintings arrive:
- *   src/assets/temp-climber-week.jpg   (unlocks after 7 finished workout days)
- *   src/assets/temp-climber-month.jpg  (unlocks after 30 finished workout days)
- * src/assets/bg-ridge.webp is the artist's finished painting.
- */
-const SRC = { ridge, week, month };
+const SRC = { ridge, week: yard, month: heights };
 
 let active = ridge;
 

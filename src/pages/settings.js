@@ -37,7 +37,7 @@ export async function settingsHtml() {
       </form>
       <fieldset class="art-choice">
         <legend>Card painting</legend>
-        <p class="lede">Highest unlocked is used on its own. Week and month paintings are stand-in landscapes until finished art replaces them.</p>
+        <p class="lede">Highest unlocked is used on its own. The Yard opens after 7 workout days, The Heights after 30.</p>
         ${paintingOptions(profile.artChoice || 'auto', finishedDays)}
       </fieldset>
       <section class="about">

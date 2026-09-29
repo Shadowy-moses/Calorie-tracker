@@ -939,12 +939,6 @@ legend {
   display: block;
 }
 
-.medal-art[data-temp-art="true"] {
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid #c6a15a;
-}
-
 .medal.locked .medal-art {
   filter: grayscale(1);
   opacity: 0.5;

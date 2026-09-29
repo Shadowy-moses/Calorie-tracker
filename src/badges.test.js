@@ -27,7 +27,7 @@ test('an empty log leaves every badge locked', () => {
   assert.equal(result.longestStreak, 0);
   assert.deepEqual(
     result.badges.map((badge) => badge.id),
-    ['kindling', 'watch', 'lake', 'ridge', 'first-week', 'first-month'],
+    ['kindling', 'watch', 'lake', 'ridge', 'yard', 'heights'],
   );
   assert.ok(result.badges.every((badge) => badge.earned === false));
 });

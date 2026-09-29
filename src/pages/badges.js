@@ -1,9 +1,9 @@
+import heights from '../assets/badge-heights.webp';
 import kindling from '../assets/badge-kindling.webp';
 import lake from '../assets/badge-lake.webp';
 import ridge from '../assets/badge-ridge.webp';
 import watch from '../assets/badge-watch.webp';
-import monthStandIn from '../assets/temp-climber-month.jpg';
-import weekStandIn from '../assets/temp-climber-week.jpg';
+import yard from '../assets/badge-yard.webp';
 import { evaluateBadges } from '../badges.js';
 import { allEntries, ensureProfile, workoutsForProfile } from '../db.js';
 import { dayTitle, esc, todayKey } from '../format.js';
@@ -14,8 +14,8 @@ const ART = {
   watch,
   lake,
   ridge,
-  'first-week': weekStandIn,
-  'first-month': monthStandIn,
+  yard,
+  heights,
 };
 
 export async function badgesHtml() {
@@ -57,7 +57,7 @@ function medalCard(badge) {
   const state = badge.earned ? `Earned ${dayTitle(badge.earnedOn, todayKey())}` : 'Locked';
   return `
     <li class="medal${badge.earned ? ' earned' : ' locked'}">
-      <img class="medal-art" src="${ART[badge.id]}" alt="" width="80" height="80"${badge.temporary ? ' data-temp-art="true"' : ''} />
+      <img class="medal-art" src="${ART[badge.id]}" alt="" width="80" height="80" />
       <span class="medal-name">${esc(badge.name)}</span>
       <span class="medal-state">${esc(state)}</span>
       <span class="medal-hint">${esc(badge.hint)}</span>

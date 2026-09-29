@@ -1,8 +1,8 @@
-/** Painting ids. Week and month files are temporary stand-ins. */
+/** Card paintings. Yard unlocks after 7 finished workout days, Heights after 30. */
 export const BACKGROUND_IDS = [
-  { id: 'ridge', label: 'Ridge', needDays: 0, temporary: false },
-  { id: 'week', label: 'Week painting', needDays: 7, temporary: true },
-  { id: 'month', label: 'Month painting', needDays: 30, temporary: true },
+  { id: 'ridge', label: 'Ridge', needDays: 0 },
+  { id: 'week', label: 'The Yard', needDays: 7 },
+  { id: 'month', label: 'The Heights', needDays: 30 },
 ];
 
 /**

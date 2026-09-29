@@ -30,20 +30,18 @@ export const BADGE_LIST = [
     needDays: 42,
   },
   {
-    id: 'first-week',
-    name: 'First week',
+    id: 'yard',
+    name: 'The Yard',
     hint: 'Finish The Climber on 7 different days.',
     kind: 'workout-days',
     needDays: 7,
-    temporary: true,
   },
   {
-    id: 'first-month',
-    name: 'First month',
+    id: 'heights',
+    name: 'The Heights',
     hint: 'Finish The Climber on 30 different days.',
     kind: 'workout-days',
     needDays: 30,
-    temporary: true,
   },
 ];
 

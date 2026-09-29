@@ -89,21 +89,21 @@ test('rounds are required and leftover reps are optional', () => {
 test('workout badges unlock at 7 and 30 different days', () => {
   const meals = [meal('2026-09-01')];
   const six = evaluateBadges(meals, days('2026-09-01', 6));
-  const week = six.badges.find((badge) => badge.id === 'first-week');
-  const month = six.badges.find((badge) => badge.id === 'first-month');
+  const week = six.badges.find((badge) => badge.id === 'yard');
+  const month = six.badges.find((badge) => badge.id === 'heights');
   assert.equal(week.earned, false);
   assert.equal(week.progress, '6 of 7 days');
   assert.equal(month.earned, false);
 
   const seven = evaluateBadges(meals, days('2026-09-01', 7));
-  assert.equal(seven.badges.find((badge) => badge.id === 'first-week').earned, true);
-  assert.equal(seven.badges.find((badge) => badge.id === 'first-week').earnedOn, '2026-09-07');
-  assert.equal(seven.badges.find((badge) => badge.id === 'first-month').earned, false);
+  assert.equal(seven.badges.find((badge) => badge.id === 'yard').earned, true);
+  assert.equal(seven.badges.find((badge) => badge.id === 'yard').earnedOn, '2026-09-07');
+  assert.equal(seven.badges.find((badge) => badge.id === 'heights').earned, false);
   assert.equal(seven.badges.find((badge) => badge.id === 'kindling').earned, true);
 
   const thirty = evaluateBadges([], days('2026-01-01', 30));
-  assert.equal(thirty.badges.find((badge) => badge.id === 'first-month').earned, true);
-  assert.equal(thirty.badges.find((badge) => badge.id === 'first-month').earnedOn, '2026-01-30');
+  assert.equal(thirty.badges.find((badge) => badge.id === 'heights').earned, true);
+  assert.equal(thirty.badges.find((badge) => badge.id === 'heights').earnedOn, '2026-01-30');
   assert.equal(thirty.badges.find((badge) => badge.id === 'kindling').earned, false);
 });
 
