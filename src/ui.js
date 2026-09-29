@@ -26,6 +26,7 @@ export function relicScreen({
   backLabel = 'Back',
   keepDate = false,
   artExtra = '',
+  compact = false,
   body = '',
 }) {
   const back = backHref
@@ -36,7 +37,7 @@ export function relicScreen({
     <div class="screen">
       <article class="relic">
         <div class="relic-rim">
-          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}" style="background-image: linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)), url('${esc(painting)}')">
+          <div class="relic-art art-ridge${artExtra ? ' has-seal' : ''}${compact ? ' is-compact' : ''}" style="background-image: linear-gradient(to bottom, rgba(20, 10, 6, 0.22), rgba(20, 10, 6, 0) 22%, rgba(20, 10, 6, 0.04) 68%, rgba(20, 10, 6, 0.28)), url('${esc(painting)}')">
             <div class="corner-marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <header class="plate${back ? ' with-back' : ''}">
               ${back}

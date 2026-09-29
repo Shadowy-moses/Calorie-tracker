@@ -27,6 +27,7 @@ export async function workoutHtml() {
   return relicScreen({
     kicker: '20 minutes',
     title: 'The Climber',
+    compact: true,
     artExtra: clockSeal(snap),
     body: `
       <p class="lede">As many rounds as you can of 5 push-ups, 5 squats, and 5 pull-ups.</p>

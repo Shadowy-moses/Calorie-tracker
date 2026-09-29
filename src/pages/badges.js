@@ -26,7 +26,7 @@ export async function badgesHtml() {
     kicker: profile.name,
     title: 'Badges',
     body: `
-      <p class="lede">Earned from your log, including past days. First week and First month come from The Climber.</p>
+      <p class="lede">Earned from meals and from The Climber, including past days.</p>
       <p class="medal-summary">${earned} of ${result.badges.length} earned · ${result.loggedDays} ${result.loggedDays === 1 ? 'day' : 'days'} logged</p>
       <ul class="medal-grid">
         ${result.badges.map((badge) => medalCard(badge)).join('')}

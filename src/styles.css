@@ -42,6 +42,11 @@ body {
 
 button, input { font: inherit; color: inherit; }
 
+button, input, textarea, select {
+  scroll-margin-top: 12px;
+  scroll-margin-bottom: calc(var(--nav-h) + 28px);
+}
+
 button { cursor: pointer; }
 
 a { color: var(--gold-deep); }
@@ -57,7 +62,7 @@ img { max-width: 100%; }
 }
 
 .screen {
-  padding: calc(12px + env(safe-area-inset-top)) 12px calc(var(--nav-h) + 18px);
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(var(--nav-h) + 36px);
 }
 
 .relic {
@@ -85,7 +90,7 @@ img { max-width: 100%; }
 
 .relic-art {
   position: relative;
-  min-height: 148px;
+  min-height: 116px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,6 +106,10 @@ img { max-width: 100%; }
   min-height: 372px;
   justify-content: space-between;
   background-position: center 30%;
+}
+
+.relic-art.has-seal.is-compact {
+  min-height: 228px;
 }
 
 .art-ridge {
@@ -896,7 +905,7 @@ legend {
   padding: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .medal {
@@ -904,8 +913,8 @@ legend {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 2px;
-  padding: 8px 6px 10px;
+  gap: 1px;
+  padding: 6px 6px 8px;
   border-radius: 14px;
   background: var(--cream);
   border: 1px solid #e0cfae;
@@ -924,8 +933,8 @@ legend {
 }
 
 .medal-art {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
   display: block;
 }
