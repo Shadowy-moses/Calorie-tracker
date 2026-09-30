@@ -17,6 +17,7 @@ import {
 import { draftFromFood } from './food.js';
 import { mealForNow } from './meals.js';
 import { macrosForGrams, per100FromPortion, round1 } from './nutrition.js';
+import { recipeFoodDraft } from './recipe.js';
 import { lookupBarcode } from './off.js';
 import { activeDate, session } from './session.js';
 import { extractBarcode, todayKey } from './format.js';
@@ -126,11 +127,22 @@ export async function saveCustomFood(input) {
     lastAmount: existing?.lastAmount ?? null,
     lastUnit: existing?.lastUnit || null,
     lastMeal: existing?.lastMeal || null,
+    source: input.source ?? existing?.source ?? null,
+    estimate: input.estimate != null ? Boolean(input.estimate) : Boolean(existing?.estimate),
+    recipeUrl: input.recipeUrl !== undefined ? input.recipeUrl : existing?.recipeUrl || null,
+    recipeServings: input.recipeServings != null ? input.recipeServings : existing?.recipeServings ?? null,
     createdAt: existing?.createdAt || now,
     updatedAt: now,
   };
   await putCustomFood(record);
   return record;
+}
+
+/** Save a reviewed recipe into My foods. Does not write a meal. */
+export async function saveRecipeFood(input) {
+  const draft = recipeFoodDraft(input);
+  if (!draft.name) throw new Error('Give the recipe a name.');
+  return saveCustomFood(draft);
 }
 
 export async function saveManualAsCustomFood({ name, grams, kcal, protein, carbs, fat }) {

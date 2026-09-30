@@ -8,6 +8,8 @@ export const session = {
   results: [],
   customMatches: [],
   scanMessage: null,
+  recipeInput: '',
+  recipeView: null,
 };
 
 export function activeDate(today) {

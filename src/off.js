@@ -138,6 +138,20 @@ function searchUrls(query) {
   ];
 }
 
+/** One search pass for a recipe ingredient. No retries, and no unmatched fallback. */
+export async function searchIngredientCandidates(query, signal) {
+  const params = new URLSearchParams({
+    search_terms: query,
+    search_simple: '1',
+    action: 'process',
+    json: '1',
+    page_size: '20',
+    fields: 'code,product_name,product_name_en,brands,nutriments',
+  });
+  const data = await fetchJson(`https://world.openfoodfacts.org/cgi/search.pl?${params}`, signal);
+  return (data.products || []).map(normalizeProduct).filter((food) => food && food.hasNutrition);
+}
+
 export async function searchFoods(query, signal) {
   let lastError = new Error('Search failed');
   let unmatched = [];

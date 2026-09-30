@@ -85,6 +85,7 @@ export function unitWord(unit, amount) {
   const plural = Math.abs(n - 1) >= 0.05;
   if (unit === 'cup') return plural ? 'cups' : 'cup';
   if (unit === 'piece') return plural ? 'pieces' : 'piece';
+  if (unit === 'serving') return plural ? 'servings' : 'serving';
   return unit || '';
 }
 
@@ -193,6 +194,7 @@ export function draftFromCustomFood(food, extra = {}) {
       protein: food.protein,
       carbs: food.carbs,
       fat: food.fat,
+      estimate: Boolean(food.estimate),
     },
   };
 }

@@ -9,6 +9,7 @@ import { activeDate, session } from '../session.js';
 import { cameraErrorMessage, startScanner } from '../scanner.js';
 import { icon, relicScreen } from '../ui.js';
 import { customResultCards, myFoodsPanel } from './my-food.js';
+import { mountRecipe, recipePanel } from './recipe.js';
 
 export async function addHtml() {
   const [logged, saved] = await Promise.all([foodsForProfile(), customFoodsForProfile()]);
@@ -16,7 +17,7 @@ export async function addHtml() {
   const tab = session.addTab || 'search';
   return relicScreen({
     art: 'fen',
-    kicker: 'Search, scan, or type',
+    kicker: 'Search, scan, or paste',
     title: 'Add food',
     body: `
       ${logBanner()}
@@ -24,11 +25,13 @@ export async function addHtml() {
         ${tabButton('search', 'Search', tab)}
         ${tabButton('scan', 'Scan', tab)}
         ${tabButton('mine', 'My foods', tab)}
+        ${tabButton('recipe', 'Recipe', tab)}
         ${tabButton('manual', 'Manual', tab)}
       </div>
       ${tab === 'search' ? searchPanel(foods) : ''}
       ${tab === 'scan' ? scanPanel() : ''}
       ${tab === 'mine' ? myFoodsPanel(saved) : ''}
+      ${tab === 'recipe' ? recipePanel() : ''}
       ${tab === 'manual' ? manualPanel() : ''}
     `,
   });
@@ -299,6 +302,8 @@ export function mountAdd(root, handlers) {
       statusEl.textContent = message || '';
     }, root.querySelector('#scan-extra'));
   });
+
+  cleanups.push(mountRecipe(root));
 
   const manualForm = root.querySelector('#manual-form');
   manualForm?.addEventListener('submit', (event) => {

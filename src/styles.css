@@ -366,6 +366,49 @@ h2 {
   text-overflow: ellipsis;
 }
 
+.entry-meta.can-wrap {
+  white-space: normal;
+  overflow: visible;
+}
+
+.recipe { display: grid; gap: 14px; }
+
+.recipe-preview { display: grid; gap: 12px; }
+
+.recipe-name {
+  font-family: var(--display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.recipe-lines {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.recipe-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.recipe-line-name { font-weight: 700; }
+
+.recipe-line-meta {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
 .entry-kcal {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -472,7 +515,7 @@ h2 {
   margin-bottom: 14px;
 }
 
-.tabs { grid-template-columns: repeat(4, 1fr); }
+.tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 .seg { grid-template-columns: 1fr 1fr; margin-bottom: 0; }
 
@@ -487,8 +530,8 @@ h2 {
 }
 
 .tab-btn {
-  font-size: 13px;
-  padding: 0 2px;
+  font-size: 12px;
+  padding: 0 1px;
   line-height: 1.15;
 }
 
@@ -509,6 +552,7 @@ h2 {
   clip: rect(0 0 0 0);
 }
 
+textarea,
 input[type="search"],
 input[type="text"],
 input[type="date"],
@@ -521,6 +565,13 @@ input:not([type="radio"]):not([type="checkbox"]) {
   color: var(--ink);
   padding: 0 14px;
   font-size: 16px;
+}
+
+textarea {
+  min-height: 140px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.4;
 }
 
 .stack-form,
