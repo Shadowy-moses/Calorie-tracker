@@ -42,8 +42,8 @@ export async function settingsHtml() {
       </fieldset>
       <section class="about">
         <h2>On this phone</h2>
-        <p>Meals, workouts, My foods, and targets stay in this browser. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
-        <button class="btn danger" type="button" id="clear-data">Erase everything on this phone</button>
+        <p>Meals, workouts, My foods, and targets stay in this browser. David and Brittney each have their own log. Food search and barcodes are looked up in <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a>. Their database is available under the Open Database License.</p>
+        <button class="btn danger" type="button" id="clear-data">Erase ${esc(profile.name)}'s log</button>
       </section>`,
   });
 }
@@ -76,9 +76,10 @@ export function mountSettings(root) {
   root.querySelector('#reset-goals').addEventListener('click', onReset);
 
   const onClear = async () => {
+    const profile = await ensureProfile();
     const ok = await confirmSheet({
-      title: 'Erase this phone’s log?',
-      text: 'Meals, workouts, and My foods for David will be deleted. Targets and the card painting go back to the start. This cannot be undone.',
+      title: `Erase ${profile.name}'s log?`,
+      text: `Meals, workouts, and My foods for ${profile.name} will be deleted. Targets and the painting for ${profile.name} go back to the start. The other person's log stays on this phone.`,
       confirmLabel: 'Erase',
       danger: true,
     });

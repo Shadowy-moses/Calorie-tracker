@@ -10,7 +10,8 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@fontsource/fraunces": "^5.2.9",
+    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/crimson-pro": "^5.2.8",
     "@zxing/browser": "^0.1.5"
   },
   "devDependencies": {

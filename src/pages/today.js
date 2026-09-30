@@ -24,7 +24,7 @@ export async function todayHtml() {
 
   return relicScreen({
     art: 'fen',
-    kicker: `${date.weekday} · ${date.month} ${date.day}`,
+    kicker: `${profile.name} · ${date.weekday} · ${date.month} ${date.day}`,
     title: 'Today',
     artExtra: calorieSeal(totals, profile),
     body: `

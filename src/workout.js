@@ -1,4 +1,4 @@
-import { ACTIVE_PROFILE_ID, ensureProfile, getWorkout, putWorkout } from './db.js';
+import { activeProfileId, ensureProfile, getWorkout, putWorkout } from './db.js';
 
 export const CLIMBER_MS = 20 * 60 * 1000;
 const STORAGE_KEY = 'climber-timer';
@@ -168,12 +168,12 @@ function readCount(value, required) {
 
 export async function saveWorkoutSession({ date, rounds, pushups, squats, pullups, seconds }) {
   const profile = await ensureProfile();
-  const id = `workout:${profile.id || ACTIVE_PROFILE_ID}:${date}`;
+  const id = `workout:${profile.id || activeProfileId()}:${date}`;
   const existing = await getWorkout(id);
   const now = Date.now();
   return putWorkout({
     id,
-    profileId: profile.id || ACTIVE_PROFILE_ID,
+    profileId: profile.id || activeProfileId(),
     date,
     rounds,
     pushups,

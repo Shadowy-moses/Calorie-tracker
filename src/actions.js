@@ -1,7 +1,7 @@
 import { requestRender } from './bus.js';
 import { buildCustomEntry, normalizeUnit } from './custom-food.js';
 import {
-  ACTIVE_PROFILE_ID,
+  activeProfileId,
   adjustUseCount,
   deleteEntry,
   findCustomByName,
@@ -31,7 +31,7 @@ export async function rememberFood(food, { grams, meal, countUse }) {
   const now = Date.now();
   const record = {
     id: existing?.id || crypto.randomUUID(),
-    profileId: ACTIVE_PROFILE_ID,
+    profileId: activeProfileId(),
     name: food.name,
     brand: food.brand || '',
     barcode: food.barcode || existing?.barcode || null,
@@ -62,7 +62,7 @@ export async function logFood({ food, grams, meal, date, countUse = true, totals
     const existing = await getEntry(entryId);
     const next = {
       id: entryId,
-      profileId: ACTIVE_PROFILE_ID,
+      profileId: activeProfileId(),
       foodId: saved.id,
       date: existing?.date || date,
       meal,
@@ -86,7 +86,7 @@ export async function logFood({ food, grams, meal, date, countUse = true, totals
   }
   const entry = {
     id: crypto.randomUUID(),
-    profileId: ACTIVE_PROFILE_ID,
+    profileId: activeProfileId(),
     foodId: saved.id,
     date,
     meal,
@@ -114,7 +114,7 @@ export async function saveCustomFood(input) {
   const existing = input.id ? await getCustomFood(input.id) : null;
   const record = {
     id: existing?.id || crypto.randomUUID(),
-    profileId: ACTIVE_PROFILE_ID,
+    profileId: activeProfileId(),
     name: input.name.trim(),
     servingQty: round1(input.servingQty),
     servingUnit: normalizeUnit(input.servingUnit),
@@ -169,7 +169,7 @@ export async function logCustomFood({ food, amount, unit, meal, date, entryId })
     date,
     entryId,
     existing,
-    profileId: ACTIVE_PROFILE_ID,
+    profileId: activeProfileId(),
   });
   if (!entry) throw new Error('Enter an amount.');
   await putEntry(entry);

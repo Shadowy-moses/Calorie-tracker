@@ -1,9 +1,13 @@
-import '@fontsource/fraunces/600.css';
+import '@fontsource/cinzel/600.css';
+import '@fontsource/cinzel/700.css';
+import '@fontsource/crimson-pro/400.css';
+import '@fontsource/crimson-pro/600.css';
+import '@fontsource/crimson-pro/700.css';
 import { registerSW } from 'virtual:pwa-register';
 import { quickAddFood, resolveBarcode, saveManualAsCustomFood, saveManualPortion, undoQuickAdd } from './actions.js';
 import { setRenderer } from './bus.js';
 import { draftFromCustomEntry, draftFromCustomFood } from './custom-food.js';
-import { deleteEntry, ensureProfile, getCustomFood, getEntry, getFood } from './db.js';
+import { PEOPLE, activeProfileId, deleteEntry, ensureProfile, getCustomFood, getEntry, getFood, loadStoredProfileId, ownsRecord, setActiveProfileId } from './db.js';
 import { draftFromEntry, draftFromFood } from './food.js';
 import { dayTitle, esc, fmtNum, todayKey } from './format.js';
 import { mealForNow, mealLabel } from './meals.js';
@@ -17,7 +21,7 @@ import { badgesHtml } from './pages/badges.js';
 import { todayHtml } from './pages/today.js';
 import { mountWorkout, workoutHtml } from './pages/workout.js';
 import { session } from './session.js';
-import { confirmSheet, relicScreen, tabs, toast } from './ui.js';
+import { confirmSheet, peopleSwitch, relicScreen, tabs, toast } from './ui.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -26,6 +30,7 @@ if ('serviceWorker' in navigator) {
 
 const view = document.getElementById('view');
 const tabbar = document.getElementById('tabbar');
+const peopleBar = document.getElementById('people');
 let cleanup = () => {};
 let renderToken = 0;
 
@@ -58,6 +63,7 @@ async function render() {
   cleanup = () => {};
   const route = parseRoute(location.hash);
   document.title = `${TITLES[route.name] || 'Calories'} · Calorie Tracker`;
+  peopleBar.innerHTML = peopleSwitch(PEOPLE, activeProfileId());
   tabbar.innerHTML = tabs(route.tab);
   tabbar.hidden = false;
   await applyCardArt();
@@ -72,7 +78,7 @@ async function render() {
     }
     if (typeof stop === 'function') cleanup = stop;
   }
-  view.querySelector('.screen')?.scrollTo?.(0, 0);
+  view.scrollTo(0, 0);
   window.scrollTo(0, 0);
 }
 
@@ -123,12 +129,12 @@ function parseRoute(hash) {
       name: 'my-food',
       tab: 'add',
       html: async () => {
-        const food = await getCustomFood(id);
+        const food = await visibleCustomFood(id);
         if (!food) return missingFoodHtml();
         return myFoodFormHtml(food);
       },
       mount: async (root) => {
-        const food = await getCustomFood(id);
+        const food = await visibleCustomFood(id);
         if (!food || !root.querySelector('#my-food-form')) return () => {};
         return mountMyFoodForm(root, food);
       },
@@ -141,12 +147,12 @@ function parseRoute(hash) {
       name: 'log-food',
       tab: 'add',
       html: async () => {
-        const food = await getCustomFood(id);
+        const food = await visibleCustomFood(id);
         if (!food) return missingFoodHtml();
         return customLogHtml(draftFromCustomFood(food));
       },
       mount: async (root) => {
-        const food = await getCustomFood(id);
+        const food = await visibleCustomFood(id);
         if (!food || !root.querySelector('#custom-log-form')) return () => {};
         return mountCustomLog(root, draftFromCustomFood(food), (date) => goToDate(date));
       },
@@ -173,7 +179,7 @@ function parseRoute(hash) {
       name: 'portion',
       tab: 'add',
       html: async () => {
-        const record = await getFood(id);
+        const record = await visibleFood(id);
         if (!record) {
           return relicScreen({
             kicker: 'Food',
@@ -201,7 +207,7 @@ function parseRoute(hash) {
       name: 'entry',
       tab: 'today',
       html: async () => {
-        const record = await getEntry(id);
+        const record = await visibleEntry(id);
         if (!record) {
           return relicScreen({
             kicker: 'Log',
@@ -214,7 +220,7 @@ function parseRoute(hash) {
         return portionHtml(session.draft);
       },
       mount: async (root) => {
-        const record = await getEntry(id);
+        const record = await visibleEntry(id);
         if (!record) return () => {};
         tabbar.innerHTML = tabs(record.date === todayKey() ? 'today' : 'history');
         if (isCustomEntry(record)) {
@@ -365,6 +371,11 @@ document.getElementById('app').addEventListener('click', (event) => {
   const actionEl = event.target.closest('[data-action]');
   if (!actionEl) return;
   const action = actionEl.dataset.action;
+  if (action === 'switch-person') {
+    event.preventDefault();
+    void onSwitchPerson(actionEl.dataset.person);
+    return;
+  }
   if (action === 'switch-tab') {
     session.addTab = actionEl.dataset.tab;
     if (session.addTab !== 'manual') session.scanMessage = null;
@@ -406,8 +417,44 @@ document.getElementById('app').addEventListener('click', (event) => {
   }
 });
 
+function clearPersonDraft() {
+  session.draft = null;
+  session.manual = null;
+  session.results = [];
+  session.customMatches = [];
+  session.searchQuery = '';
+  session.scanMessage = null;
+}
+
+async function onSwitchPerson(id) {
+  if (!id || id === activeProfileId()) return;
+  setActiveProfileId(id);
+  clearPersonDraft();
+  const personal = /^#\/(entry|food|my-food|log-food|portion)(\/|$)/.test(location.hash);
+  if (personal) {
+    location.hash = '#/today';
+    return;
+  }
+  void render();
+}
+
+async function visibleEntry(id) {
+  const record = await getEntry(id);
+  return ownsRecord(record) ? record : null;
+}
+
+async function visibleFood(id) {
+  const record = await getFood(id);
+  return ownsRecord(record) ? record : null;
+}
+
+async function visibleCustomFood(id) {
+  const record = await getCustomFood(id);
+  return ownsRecord(record) ? record : null;
+}
+
 async function onQuickAdd(id) {
-  const food = await getFood(id);
+  const food = await visibleFood(id);
   if (!food) return;
   const { entry, grams, meal, date } = await quickAddFood(food);
   const when = date === todayKey() ? mealLabel(meal) : `${mealLabel(meal)} · ${dayTitle(date)}`;
@@ -426,6 +473,8 @@ async function onDelete(id, name) {
     danger: true,
   });
   if (!ok) return;
+  const record = await visibleEntry(id);
+  if (!record) return;
   await deleteEntry(id);
   toast('Entry deleted');
   void render();
@@ -445,6 +494,7 @@ setRenderer(() => {
   void render();
 });
 
+loadStoredProfileId();
 ensureProfile()
   .then(() => {
     syncOffline();
@@ -458,4 +508,5 @@ ensureProfile()
       body: `<p class="lede">${esc(error.message || 'Storage is unavailable in this browser.')}</p>`,
     });
     tabbar.hidden = true;
+    peopleBar.hidden = true;
   });

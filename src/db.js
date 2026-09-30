@@ -1,16 +1,60 @@
 /**
- * On-device store. Every food and meal row carries profileId so another
- * person can be added later without reshaping the data. v1 only writes David.
+ * On-device store. Meals, My foods, workouts, and targets are tagged with
+ * profileId. David and Brittney each have a profile. There is no account.
  *
  * Version 2 adds customFoods ("My foods"). Version 3 adds workouts
  * (The Climber). Upgrades only create stores that are missing, so meals
- * already on the phone stay put.
+ * already on the phone stay put. Rows with no profileId are claimed for
+ * David and are not rewritten otherwise.
  *
  * A recipe saved from a link is a My foods row with optional source,
  * estimate, and recipeUrl fields. That does not add a store or rewrite meals.
  */
 
-export const ACTIVE_PROFILE_ID = 'david';
+export const PEOPLE = [
+  { id: 'david', name: 'David' },
+  { id: 'brittney', name: 'Brittney' },
+];
+
+export const DAVID_ID = 'david';
+
+const PROFILE_KEY = 'calorie-tracker-active-profile';
+
+let activeId = DAVID_ID;
+
+export function activeProfileId() {
+  return activeId;
+}
+
+export function setActiveProfileId(id) {
+  if (!PEOPLE.some((person) => person.id === id)) return activeId;
+  activeId = id;
+  try {
+    localStorage.setItem(PROFILE_KEY, id);
+  } catch {
+    /* Storage can be blocked. The choice still lasts for this visit. */
+  }
+  return activeId;
+}
+
+export function loadStoredProfileId() {
+  try {
+    const saved = localStorage.getItem(PROFILE_KEY);
+    if (PEOPLE.some((person) => person.id === saved)) activeId = saved;
+  } catch {
+    /* Keep David when storage cannot be read. */
+  }
+  return activeId;
+}
+
+/** Meals saved before a profile id existed stay with David. */
+export function ownerId(record) {
+  return record?.profileId || DAVID_ID;
+}
+
+export function ownsRecord(record, profileId = activeProfileId()) {
+  return Boolean(record) && ownerId(record) === profileId;
+}
 
 export const DEFAULT_GOALS = {
   calorieGoal: 2000,
@@ -76,7 +120,7 @@ async function store(name, mode) {
   return { tx, objectStore: tx.objectStore(name) };
 }
 
-export async function getProfile(id = ACTIVE_PROFILE_ID) {
+export async function getProfile(id = activeProfileId()) {
   const { objectStore } = await store('profiles', 'readonly');
   return requestResult(objectStore.get(id));
 }
@@ -88,12 +132,73 @@ export async function putProfile(profile) {
   return profile;
 }
 
-export async function ensureProfile() {
-  const existing = await getProfile();
+let profilesReady;
+
+export function ensureProfiles() {
+  if (!profilesReady) {
+    profilesReady = seedProfiles().catch((error) => {
+      profilesReady = null;
+      throw error;
+    });
+  }
+  return profilesReady;
+}
+
+async function seedProfiles() {
+  await claimLegacyRows();
+  const profiles = [];
+  for (const person of PEOPLE) {
+    const existing = await getProfile(person.id);
+    if (existing) {
+      profiles.push(existing);
+      continue;
+    }
+    profiles.push(
+      await putProfile({
+        id: person.id,
+        name: person.name,
+        ...DEFAULT_GOALS,
+        createdAt: Date.now(),
+      }),
+    );
+  }
+  return profiles;
+}
+
+/**
+ * Rows that predate profile ids have no profileId, so the byProfile index
+ * would hide them. Stamp those as David. Rows that already have an id,
+ * including David's meals, are left as they are.
+ */
+async function claimLegacyRows() {
+  const db = await database();
+  const names = ['foods', 'entries', 'customFoods', 'workouts'].filter((name) => db.objectStoreNames.contains(name));
+  if (!names.length) return;
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(names, 'readwrite');
+    for (const name of names) {
+      const objectStore = tx.objectStore(name);
+      objectStore.openCursor().onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (!cursor) return;
+        if (!cursor.value.profileId) cursor.update({ ...cursor.value, profileId: DAVID_ID });
+        cursor.continue();
+      };
+    }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error('Could not keep existing meals'));
+  });
+}
+
+export async function ensureProfile(id = activeProfileId()) {
+  await ensureProfiles();
+  const existing = await getProfile(id);
   if (existing) return existing;
+  const person = PEOPLE.find((item) => item.id === id);
   return putProfile({
-    id: ACTIVE_PROFILE_ID,
-    name: 'David',
+    id,
+    name: person?.name || 'David',
     ...DEFAULT_GOALS,
     createdAt: Date.now(),
   });
@@ -121,20 +226,20 @@ export async function putFood(food) {
   return food;
 }
 
-export async function foodsForProfile(profileId = ACTIVE_PROFILE_ID) {
+export async function foodsForProfile(profileId = activeProfileId()) {
   const { objectStore } = await store('foods', 'readonly');
   const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
   return rows || [];
 }
 
-export async function findFoodByBarcode(barcode, profileId = ACTIVE_PROFILE_ID) {
+export async function findFoodByBarcode(barcode, profileId = activeProfileId()) {
   if (!barcode) return null;
   const { objectStore } = await store('foods', 'readonly');
   const row = await requestResult(objectStore.index('byBarcode').get([profileId, barcode]));
   return row || null;
 }
 
-export async function findManualByName(name, profileId = ACTIVE_PROFILE_ID) {
+export async function findManualByName(name, profileId = activeProfileId()) {
   const key = name.trim().toLowerCase();
   if (!key) return null;
   const foods = await foodsForProfile(profileId);
@@ -159,13 +264,13 @@ export async function deleteCustomFood(id) {
   await txDone(tx);
 }
 
-export async function customFoodsForProfile(profileId = ACTIVE_PROFILE_ID) {
+export async function customFoodsForProfile(profileId = activeProfileId()) {
   const { objectStore } = await store('customFoods', 'readonly');
   const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
   return rows || [];
 }
 
-export async function findCustomByName(name, profileId = ACTIVE_PROFILE_ID) {
+export async function findCustomByName(name, profileId = activeProfileId()) {
   const key = name.trim().toLowerCase();
   if (!key) return null;
   const foods = await customFoodsForProfile(profileId);
@@ -190,7 +295,7 @@ export async function deleteEntry(id) {
   await txDone(tx);
 }
 
-export async function entriesForDate(date, profileId = ACTIVE_PROFILE_ID) {
+export async function entriesForDate(date, profileId = activeProfileId()) {
   const { objectStore } = await store('entries', 'readonly');
   const rows = await requestResult(objectStore.index('byProfileDate').getAll([profileId, date]));
   return rows || [];
@@ -208,13 +313,13 @@ export async function putWorkout(workout) {
   return workout;
 }
 
-export async function workoutsForProfile(profileId = ACTIVE_PROFILE_ID) {
+export async function workoutsForProfile(profileId = activeProfileId()) {
   const { objectStore } = await store('workouts', 'readonly');
   const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
   return rows || [];
 }
 
-export async function allEntries(profileId = ACTIVE_PROFILE_ID) {
+export async function allEntries(profileId = activeProfileId()) {
   const { objectStore } = await store('entries', 'readonly');
   const rows = await requestResult(objectStore.index('byProfile').getAll(profileId));
   return rows || [];
@@ -228,7 +333,7 @@ export async function adjustUseCount(foodId, delta) {
   await putFood(food);
 }
 
-export async function clearProfile(profileId = ACTIVE_PROFILE_ID) {
+export async function clearProfile(profileId = activeProfileId()) {
   const db = await database();
   await new Promise((resolve, reject) => {
     const tx = db.transaction(['foods', 'entries', 'customFoods', 'workouts'], 'readwrite');
