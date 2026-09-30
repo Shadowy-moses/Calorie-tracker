@@ -21,7 +21,7 @@ import { badgesHtml } from './pages/badges.js';
 import { todayHtml } from './pages/today.js';
 import { mountWorkout, workoutHtml } from './pages/workout.js';
 import { session } from './session.js';
-import { confirmSheet, peopleSwitch, relicScreen, tabs, toast } from './ui.js';
+import { confirmSheet, hideToast, peopleSwitch, relicScreen, tabs, toast } from './ui.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -430,6 +430,7 @@ async function onSwitchPerson(id) {
   if (!id || id === activeProfileId()) return;
   setActiveProfileId(id);
   clearPersonDraft();
+  hideToast();
   const personal = /^#\/(entry|food|my-food|log-food|portion)(\/|$)/.test(location.hash);
   if (personal) {
     location.hash = '#/today';
