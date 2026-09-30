@@ -29,7 +29,11 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html, body { margin: 0; }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
   min-height: 100dvh;
@@ -56,7 +60,7 @@ button, input { font: inherit; color: inherit; }
 
 button, input, textarea, select {
   scroll-margin-top: 12px;
-  scroll-margin-bottom: calc(var(--nav-h) + 28px);
+  scroll-margin-bottom: 32px;
 }
 
 button { cursor: pointer; }
@@ -71,12 +75,22 @@ img { max-width: 100%; }
   position: relative;
   z-index: 1;
   width: min(480px, 100%);
+  height: 100dvh;
   margin: 0 auto;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .screen {
-  padding: calc(18px + env(safe-area-inset-top)) 22px calc(var(--nav-h) + 32px);
+  padding: calc(18px + env(safe-area-inset-top)) 22px 48px;
 }
 
 .relic {
@@ -272,13 +286,9 @@ h1, h2, p { margin: 0; }
 
 .add-dock {
   position: sticky;
-  bottom: calc(var(--nav-h) + 8px);
+  bottom: 16px;
   z-index: 6;
   margin: 0;
-}
-
-.screen:has(.add-dock) {
-  padding-bottom: calc(var(--nav-h) + 78px);
 }
 
 .section-head,
@@ -1090,13 +1100,10 @@ legend {
 }
 
 .tabbar {
-  position: fixed;
+  position: relative;
   z-index: 20;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: min(480px, 100%);
-  margin: 0 auto;
+  flex: none;
+  width: 100%;
   height: var(--nav-h);
   padding: 6px 4px env(safe-area-inset-bottom);
   display: grid;

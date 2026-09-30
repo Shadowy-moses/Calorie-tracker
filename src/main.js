@@ -76,7 +76,7 @@ async function render() {
     }
     if (typeof stop === 'function') cleanup = stop;
   }
-  view.querySelector('.screen')?.scrollTo?.(0, 0);
+  view.scrollTo(0, 0);
   window.scrollTo(0, 0);
 }
 
