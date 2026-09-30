@@ -1,4 +1,8 @@
-import '@fontsource/fraunces/600.css';
+import '@fontsource/cinzel/500.css';
+import '@fontsource/cinzel/600.css';
+import '@fontsource/crimson-pro/400.css';
+import '@fontsource/crimson-pro/500.css';
+import '@fontsource/crimson-pro/600.css';
 import { registerSW } from 'virtual:pwa-register';
 import { quickAddFood, resolveBarcode, saveManualAsCustomFood, saveManualPortion, undoQuickAdd } from './actions.js';
 import { setRenderer } from './bus.js';
@@ -72,7 +76,7 @@ async function render() {
     }
     if (typeof stop === 'function') cleanup = stop;
   }
-  view.querySelector('.screen')?.scrollTo?.(0, 0);
+  view.scrollTo(0, 0);
   window.scrollTo(0, 0);
 }
 
