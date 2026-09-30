@@ -5,6 +5,9 @@
  * Version 2 adds customFoods ("My foods"). Version 3 adds workouts
  * (The Climber). Upgrades only create stores that are missing, so meals
  * already on the phone stay put.
+ *
+ * A recipe saved from a link is a My foods row with optional source,
+ * estimate, and recipeUrl fields. That does not add a store or rewrite meals.
  */
 
 export const ACTIVE_PROFILE_ID = 'david';

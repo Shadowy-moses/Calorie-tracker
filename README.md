@@ -43,6 +43,7 @@ Barcode scanning uses the camera, which browsers only allow on a secure page. Gi
 
 - **Today** shows calories against the daily goal, plus protein, carbs, and fat. Meals are grouped into breakfast, lunch, dinner, and snacks. Tap an entry to change the amount or meal, or delete it.
 - **Add** searches [Open Food Facts](https://world.openfoodfacts.org/), scans a barcode with the camera (or lets you type one), and can record a food by hand if it isn’t in the database. After you pick a food, choose grams or servings and a meal.
+- **Recipe** takes a pasted link or the recipe text. When the page publishes calories and macros (schema.org Recipe data), those numbers are used. When it only lists ingredients, they are looked up and added up, and the total is marked as an estimate. You can change the serving count, then save it to My foods. It is not logged until you choose a meal.
 - Foods you have logged show up as **recent** items. Tap one to log that same portion again.
 - **History** lists past days and their totals. Open a day to see the meals, or log something onto that day.
 - **Settings** holds the daily calorie goal and the protein, carb, and fat targets.

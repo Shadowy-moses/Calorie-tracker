@@ -64,6 +64,8 @@ test('half a piece uses the saved piece, not grams', () => {
   assert.equal(formatPortion(0.5, 'piece'), '0.5 pieces');
   assert.equal(formatPortion(1, 'cup'), '1 cup');
   assert.equal(formatPortion(2, 'cup'), '2 cups');
+  assert.equal(formatPortion(1, 'serving'), '1 serving');
+  assert.equal(formatPortion(2, 'serving'), '2 servings');
 });
 
 test('cups cannot be converted to grams', () => {

@@ -40,7 +40,7 @@ function myFoodRow(food) {
     <article class="entry">
       <a class="entry-main" href="#/log-food/${esc(food.id)}">
         <span class="entry-name">${esc(food.name)}</span>
-        <span class="entry-meta">${esc(perServingLabel(food))}</span>
+        <span class="entry-meta can-wrap">${food.estimate ? '<span class="tag">Estimate</span> ' : ''}${esc(perServingLabel(food))}</span>
       </a>
       <a class="icon-btn" href="#/my-food/${esc(food.id)}" aria-label="Edit ${esc(food.name)}">${icon('pencil')}</a>
     </article>`;
@@ -57,7 +57,7 @@ export function customResultCards(foods) {
             <span class="thumb mine-thumb" aria-hidden="true"></span>
             <span class="result-copy">
               <span class="entry-name">${esc(food.name)}</span>
-              <span class="entry-meta"><span class="tag">My food</span> ${esc(perServingLabel(food))}</span>
+              <span class="entry-meta can-wrap">${food.estimate ? '<span class="tag">Estimate</span> ' : ''}<span class="tag">My food</span> ${esc(perServingLabel(food))}</span>
             </span>
           </a>`,
         )
@@ -219,6 +219,7 @@ export function customLogHtml(draft) {
     body: `
       ${draft.entryId ? '' : logDateNote()}
       <p class="per100">${esc(servingSentence(food))}</p>
+      ${food.estimate ? '<p class="notice">These numbers are an estimate from the recipe’s ingredients.</p>' : ''}
       <form id="custom-log-form" class="stack-form">
         <fieldset class="meal-picker">
           <legend>Meal</legend>
@@ -387,6 +388,7 @@ function amountLabel(unit, food) {
 function unitWordSafe(unit, food) {
   if (unit === 'cup') return 'cups';
   if (unit === 'piece') return 'pieces';
+  if (unit === 'serving') return 'servings';
   return unit || food.servingUnit;
 }
 
