@@ -1,6 +1,6 @@
 # Calorie tracker
 
-A small calorie and macro tracker for David. It runs in the browser, works from a phone home screen, and keeps every meal on the device. There is no account and no server.
+A small calorie and macro tracker for David and Brittney. It runs in the browser, works from a phone home screen, and keeps every meal on the device. There is no account and no server. A switch at the top of the screen changes who is logging. Each person has their own meals, My foods, targets, and badges.
 
 ## Run it on your computer
 
@@ -52,4 +52,4 @@ Targets start at 2,000 kcal, 120 g protein, 225 g carbs, and 65 g fat. That is a
 
 ## What is stored
 
-Meals, foods, and targets stay in this browser (IndexedDB), on a profile named David. The records include a profile id so another person could be added later. Nothing is uploaded except food searches and barcode lookups, which go to Open Food Facts. That database is available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+Meals, foods, and targets stay in this browser (IndexedDB). David and Brittney are stored as two profiles on the phone. Existing meals stay with David. Nothing is uploaded except food searches, barcode lookups, and recipe pages, which go to Open Food Facts or the recipe site. Open Food Facts is available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).

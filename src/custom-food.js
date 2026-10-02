@@ -1,4 +1,4 @@
-import { ACTIVE_PROFILE_ID } from './db.js';
+import { activeProfileId } from './db.js';
 import { fmtKcal, fmtNum } from './format.js';
 import { round1 } from './nutrition.js';
 
@@ -127,7 +127,7 @@ export function buildCustomEntry({
   date,
   entryId,
   existing,
-  profileId = ACTIVE_PROFILE_ID,
+  profileId = activeProfileId(),
   now = Date.now(),
 }) {
   const totals = macrosForServing(food, amount, unit);

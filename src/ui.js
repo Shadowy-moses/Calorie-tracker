@@ -157,6 +157,20 @@ export function confirmSheet({ title, text, confirmLabel, danger = false }) {
   });
 }
 
+export function peopleSwitch(people, activeId) {
+  const buttons = people
+    .map((person) => {
+      const on = person.id === activeId;
+      return `<button type="button" class="person-btn${on ? ' on' : ''}" data-action="switch-person" data-person="${esc(person.id)}" aria-pressed="${on ? 'true' : 'false'}">${esc(person.name)}</button>`;
+    })
+    .join('');
+  return `
+    <div class="people-switch" role="group" aria-label="Who is logging">
+      <p class="people-kicker">Logging</p>
+      ${buttons}
+    </div>`;
+}
+
 export function tabs(active) {
   const items = [
     ['today', '#/today', 'Today'],
