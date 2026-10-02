@@ -452,9 +452,21 @@ h2 {
   overflow: visible;
 }
 
-.recipe { display: grid; gap: 14px; }
+.recipe { display: grid; gap: 14px; min-width: 0; }
 
-.recipe-preview { display: grid; gap: 12px; }
+.recipe .lede,
+.recipe .notice,
+.recipe .muted {
+  overflow-wrap: anywhere;
+}
+
+.recipe textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 168px;
+}
+
+.recipe-preview { display: grid; gap: 12px; min-width: 0; }
 
 .recipe-name {
   font-family: var(--display);
@@ -464,6 +476,7 @@ h2 {
   text-transform: none;
   color: var(--ink);
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .recipe-lines {
@@ -477,13 +490,17 @@ h2 {
 .recipe-lines li {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 4px 10px;
   align-items: baseline;
 }
 
 .recipe-line-name {
   font-family: var(--font);
   font-weight: 600;
+  flex: 1 1 10rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .recipe-line-meta {
