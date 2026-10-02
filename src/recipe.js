@@ -39,7 +39,7 @@ const UNITS = [
 
 export const RECIPE_MESSAGES = {
   empty: 'Paste a recipe link or the recipe text.',
-  unread: 'That page couldn’t be read from this phone. Paste the recipe text instead.',
+  unread: 'Paste the recipe text instead. This phone can’t open that page.',
   offline: 'You are offline, so that page can’t be read. Paste the recipe text if you already have it.',
   notRecipe: 'That page doesn’t list a recipe with nutrition or ingredients, so nothing was added.',
   notText: 'That doesn’t list a recipe with nutrition or ingredients, so nothing was added.',
@@ -268,10 +268,17 @@ export async function lookupIngredientNutrition(name, deps) {
 }
 
 export async function fetchRecipePage(url, signal) {
+  // A hand-set Accept header is not a simple request on iPhone Safari: WebKit
+  // preflights values it does not treat as standard, and recipe sites answer
+  // the page itself with Access-Control-Allow-Origin but do not allow that
+  // header. The phone then fails before any HTML can be read. A plain GET is
+  // the request a phone can finish when the site allows the browser to read it.
   const response = await fetch(url, {
     signal,
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
     redirect: 'follow',
-    headers: { Accept: 'text/html,application/xhtml+xml' },
   });
   if (!response.ok) {
     const error = new Error('unread');
@@ -507,10 +514,15 @@ function asList(value) {
 
 function extractJsonLd(html) {
   const blocks = [];
-  const re = /<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  let match = re.exec(String(html || ''));
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  const source = String(html || '');
+  let match = re.exec(source);
   while (match) {
-    const cleaned = match[1]
+    if (!isJsonLdScript(match[1])) {
+      match = re.exec(source);
+      continue;
+    }
+    const cleaned = match[2]
       .replace(/^\s*<!--/, '')
       .replace(/-->\s*$/, '')
       .replace(/^\s*<!\[CDATA\[/, '')
@@ -525,9 +537,13 @@ function extractJsonLd(html) {
         /* skip malformed blocks */
       }
     }
-    match = re.exec(String(html || ''));
+    match = re.exec(source);
   }
   return blocks;
+}
+
+function isJsonLdScript(attrs) {
+  return /\btype\s*=\s*(?:"application\/ld\+json"|'application\/ld\+json'|application\/ld\+json)(?=[\s>]|$)/i.test(attrs);
 }
 
 function walkLd(node, out, depth) {

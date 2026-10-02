@@ -4,6 +4,7 @@ import { GRAMS_PER_OZ } from './custom-food.js';
 import {
   RECIPE_MESSAGES,
   divideTotals,
+  fetchRecipePage,
   importRecipe,
   parseIngredientLine,
   perServingMacros,
@@ -156,6 +157,45 @@ Fat: 12 g`;
   });
   assert.equal(result.recipe.estimate, false);
   assert.deepEqual(perServingMacros(result.recipe), { kcal: 280, protein: 35, carbs: 6, fat: 12 });
+});
+
+test('a recipe link is a plain GET the phone browser can finish', async () => {
+  const calls = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return new Response('<html></html>', { status: 200 });
+  };
+  try {
+    const html = await fetchRecipePage('https://recipes.example/lemon');
+    assert.equal(html, '<html></html>');
+  } finally {
+    globalThis.fetch = original;
+  }
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://recipes.example/lemon');
+  assert.equal(calls[0].init.method, 'GET');
+  assert.equal(calls[0].init.mode, 'cors');
+  assert.equal(calls[0].init.credentials, 'omit');
+  assert.equal(calls[0].init.headers, undefined);
+  assert.match(RECIPE_MESSAGES.unread, /paste the recipe text/i);
+});
+
+test('schema.org in an unquoted script tag is still the published nutrition', async () => {
+  const html = `<script type=application/ld+json class=yoast-schema-graph>{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Home"},{"@type":"Recipe","name":"Lentil soup","recipeYield":"4 servings","nutrition":{"@type":"NutritionInformation","calories":"210 calories","proteinContent":"14 g","carbohydrateContent":"30 g","fatContent":"5 g"}}]}</script>`;
+  let lookups = 0;
+  const result = await importRecipe('https://recipes.example/lentil', {
+    fetchPage: async () => html,
+    lookup: async () => {
+      lookups += 1;
+      return chicken;
+    },
+  });
+  assert.equal(lookups, 0);
+  assert.equal(result.ok, true);
+  assert.equal(result.recipe.estimate, false);
+  assert.equal(result.recipe.name, 'Lentil soup');
+  assert.deepEqual(perServingMacros(result.recipe), { kcal: 210, protein: 14, carbs: 30, fat: 5 });
 });
 
 test('a page that cannot be read adds nothing', async () => {

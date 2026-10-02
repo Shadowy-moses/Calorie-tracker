@@ -14,7 +14,7 @@ export function recipePanel() {
         <p class="lede">Paste a recipe link or the recipe itself. If the page lists calories and macros, those are used. If it only lists ingredients, they are looked up and added up, and the total is marked as an estimate. Saving puts it in My foods. It is not added to today.</p>
         <label>
           <span>Recipe link or text</span>
-          <textarea id="recipe-input" name="recipe" rows="8" placeholder="https://… or the ingredients">${esc(session.recipeInput || '')}</textarea>
+          <textarea id="recipe-input" name="recipe" rows="8" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://… or the ingredients">${esc(session.recipeInput || '')}</textarea>
         </label>
         <button class="btn" type="submit">Read recipe</button>
       </form>
@@ -160,6 +160,7 @@ export function mountRecipe(root) {
       if (!result.ok) {
         session.recipeView = { error: result.message };
         out.innerHTML = errorHtml(result.message);
+        out.querySelector('.notice')?.scrollIntoView({ block: 'nearest' });
         return;
       }
       session.recipeView = { recipe: result.recipe };
